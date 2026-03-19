@@ -3,18 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Altushka Run: Smooth Final</title>
+    <title>Altushka Run: Ksenia Final</title>
     <style>
         body { margin: 0; background: #000; color: white; font-family: 'Courier New', monospace; overflow: hidden; touch-action: manipulation; }
         canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; }
-        
         #ui, #menu, #cutscene { position: absolute; left: 0; width: 100%; height: 100%; text-align: center; z-index: 100; pointer-events: none; }
         #ui { top: 20px; height: auto; font-size: 28px; display: none; color: #ff00ff; text-shadow: 2px 2px #000; }
-        
         #menu { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; background: rgba(0,0,0,0.6); }
         #menu h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 30px; }
         
-        /* ПЛАВНОЕ ПОЯВЛЕНИЕ СЛАЙДОВ */
         #cutscene { 
             display: none; 
             background: #000; 
@@ -22,6 +19,9 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
         }
         #cutscene img { 
             max-width: 90%; 
@@ -30,7 +30,7 @@
             border: 3px solid #ff00ff;
             box-shadow: 0 0 20px #ff00ff;
             opacity: 0;
-            transition: opacity 1.5s ease-in-out; /* Плавность появления */
+            transition: opacity 1.2s ease-in-out;
         }
         #cutscene img.show { opacity: 1; }
 
@@ -67,13 +67,13 @@ imgs.jump.src = 'jump.png';
 imgs.run[0].src = 'run_1.png'; 
 imgs.run[1].src = 'run_2.png'; 
 imgs.run[2].src = 'run_3.png';
-imgs.house.src = 'дом.png'; // Исправлено под твой GitHub
+imgs.house.src = 'house.png'; // Вернули house.png
 
 const slides = ['end_1.jpg', 'end_2.jpg', 'end_3.jpg', 'end_4.jpg', 'end_5.jpg'];
 let currentSlide = 0;
 let gameState = 'MENU';
 let score = 0;
-let gameSpeed = 8;
+let gameSpeed = 8.5;
 let houseX = -5000;
 
 canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -100,9 +100,9 @@ function update() {
         obstacles[i].x -= gameSpeed;
         let o = obstacles[i];
         
-        // УЛУЧШЕННЫЕ ХИТБОКСЫ (уменьшены зазоры на 25 пикселей)
-        if (player.x + 25 < o.x + o.w && 
-            player.x + player.w - 25 > o.x && 
+        // Хитбоксы: зазоры по 30 пикселей для честной игры
+        if (player.x + 30 < o.x + o.w && 
+            player.x + player.w - 30 > o.x && 
             player.y + 10 < o.y + o.h && 
             player.y + player.h > o.y + 10) {
             location.reload();
@@ -111,7 +111,8 @@ function update() {
         if (o.x + o.w < 0) { obstacles.splice(i, 1); score++; scoreSpan.innerText = score; }
     }
 
-    if (score < 28 && Math.random() < 0.02 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 400)) {
+    // Частота появления бутылок
+    if (score < 28 && Math.random() < 0.05 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 250)) {
         obstacles.push({ x: canvas.width, y: groundY - 75, w: 45, h: 75 });
     }
 }
@@ -137,11 +138,11 @@ function startCutscene() {
 
 function showSlide() {
     if (currentSlide < slides.length) {
-        cutsceneImg.classList.remove('show'); // Сначала гасим
+        cutsceneImg.classList.remove('show');
         setTimeout(() => {
             cutsceneImg.src = slides[currentSlide];
-            cutsceneImg.onload = () => cutsceneImg.classList.add('show'); // Проявляем после загрузки
-        }, 100);
+            cutsceneImg.onload = () => cutsceneImg.classList.add('show');
+        }, 150);
     } else {
         location.reload();
     }
