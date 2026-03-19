@@ -20,16 +20,25 @@ function openTab(name) {
     const ov = document.getElementById('main-overlay');
     const ct = document.getElementById('main-content');
     ov.style.display = 'flex';
+    
+    // Подсветка кнопок меню
+    document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.innerText.includes(name === 'shop' ? 'МАГАЗИН' : name === 'assets' ? 'ИМУЩЕСТВО' : 'ЛИДЕРЫ')) btn.classList.add('active');
+    });
 
     if (name === 'shop') {
         ct.innerHTML = `
-            <h2 style="letter-spacing:5px; margin-bottom:30px;">МАГАЗИН</h2>
+            <h2 style="letter-spacing:5px; margin-bottom:30px; color:var(--gold);">МАГАЗИН</h2>
             <button class="shop-menu-btn" onclick="renderCategory('tasks')">ТЕМКИ</button>
             <button class="shop-menu-btn" onclick="renderCategory('clothes')">ОДЁЖКА</button>
             <button class="shop-menu-btn" onclick="renderCategory('wheels')">РУЛЬ И КОЛЁСА</button>
         `;
     } else {
-        ct.innerHTML = `<h2>СКОРО</h2><p style="opacity:0.5; margin-top:20px;">Раздел в разработке...</p>`;
+        ct.innerHTML = `
+            <h2 style="color:var(--gold); letter-spacing:5px;">СКОРО</h2>
+            <p style="opacity:0.5; margin-top:20px; text-transform:uppercase; font-size:12px;">Этот раздел в пути...</p>
+        `;
     }
 }
 
@@ -37,7 +46,7 @@ function renderCategory(cat) {
     const ct = document.getElementById('main-content');
     if (cat === 'tasks') {
         const item = DB.items.tasks[0];
-        let html = `<h2 style="margin-bottom:20px;">${item.name}</h2>`;
+        let html = `<h2 style="margin-bottom:25px; color:var(--gold); letter-spacing:2px;">${item.name}</h2>`;
         for (let key in DB.districts) {
             let d = DB.districts[key];
             let count = item.owned[key];
@@ -45,16 +54,17 @@ function renderCategory(cat) {
             let inc = Math.floor(item.income * d.mult);
             html += `
                 <div class="item-card">
-                    <div style="font-size:12px;"><b>${d.name}</b><br><small>+${inc}/с | Куплено: ${count}</small></div>
-                    <button onclick="buy('tasks', 0, '${key}')" style="background:none; border:1px solid #d4af37; color:#d4af37; padding:8px; font-size:11px;">
+                    <div style="font-size:11px; text-transform:uppercase;"><b>${d.name}</b><br><span style="color:var(--gold); opacity:0.8;">+${inc}/с | Куплено: ${count}</span></div>
+                    <button onclick="buy('tasks', 0, '${key}')" style="background:none; border:1px solid var(--gold); color:var(--gold); padding:10px; font-size:11px;">
                         ${price.toLocaleString()}
                     </button>
                 </div>`;
         }
-        html += `<button onclick="openTab('shop')" style="margin-top:20px; color:#d4af37; background:none; border:none;">← НАЗАД</button>`;
+        // НОВАЯ КНОПКА НАЗАД
+        html += `<button class="back-btn" onclick="openTab('shop')">← Назад в меню</button>`;
         ct.innerHTML = html;
     } else {
-        ct.innerHTML = `<h2>ПУСТО</h2><button onclick="openTab('shop')" style="margin-top:20px; color:#d4af37; background:none; border:none;">← НАЗАД</button>`;
+        ct.innerHTML = `<h2>ПУСТО</h2><button class="back-btn" onclick="openTab('shop')">← Назад</button>`;
     }
 }
 
@@ -81,4 +91,3 @@ function closeTab() { document.getElementById('main-overlay').style.display = 'n
 
 setInterval(() => { if (income > 0) { cash += (income / 10); updateUI(); } }, 100);
 updateUI();
-
