@@ -2,100 +2,144 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Altushka Run</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Altushka Run: Tashkent Underground</title>
     <style>
-        body { margin: 0; background: #1a1a1a; color: white; font-family: sans-serif; overflow: hidden; touch-action: manipulation; }
-        canvas { display: block; background: #222; border-bottom: 4px solid #ff00ff; }
-        #ui { position: absolute; top: 20px; left: 20px; font-size: 24px; text-shadow: 2px 2px #000; }
-        #msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; display: none; }
-        button { background: #ff00ff; border: none; padding: 15px 30px; color: white; font-size: 20px; border-radius: 10px; cursor: pointer; }
+        body { margin: 0; background: #1a1a1a; color: white; font-family: 'Courier New', Courier, monospace; overflow: hidden; touch-action: manipulation; }
+        canvas { display: block; background: #000; }
+        #ui, #msg, #menu { position: absolute; left: 0; width: 100%; text-align: center; z-index: 10; }
+        #ui { top: 20px; font-size: 24px; text-shadow: 2px 2px #000; display: none; color: #ff00ff; }
+        
+        #menu { top: 50%; transform: translateY(-50%); }
+        #menu h1 { color: #ff00ff; font-size: 42px; margin-bottom: 5px; text-shadow: 3px 3px #000; }
+        #best { font-size: 18px; margin-bottom: 30px; color: #00ff00; }
+        
+        #msg { top: 40%; transform: translateY(-50%); display: none; background: rgba(0,0,0,0.8); padding: 20px 0; }
+        #msg h1 { color: #ff0000; font-size: 40px; text-shadow: 2px 2px #000; margin-bottom: 10px; }
+        #death-text { font-size: 18px; margin-bottom: 25px; padding: 0 10px; color: #ccc; }
+        
+        button { background: #ff00ff; border: none; padding: 15px 45px; color: white; font-size: 20px; border-radius: 8px; cursor: pointer; box-shadow: 0 5px #990099; text-transform: uppercase; font-weight: bold; }
+        button:active { transform: translateY(3px); box-shadow: 0 2px #990099; }
     </style>
 </head>
 <body>
-    <div id="ui">Счет: <span id="score">0</span></div>
+    <div id="ui">SCORE: <span id="score">0</span></div>
+    
+    <div id="menu">
+        <h1>ALTUSHKA RUN</h1>
+        <div id="best">BEST: 0</div>
+        <button onclick="startGame()">ИГРАТЬ</button>
+    </div>
+
     <div id="msg">
-        <h1 style="color: #ff00ff;">ПОТРАЧЕНО</h1>
-        <p>Бутылка оказалась сильнее...</p>
+        <h1>ПОТРАЧЕНО</h1>
+        <div id="death-text">Бутылка оказалась сильнее...</div>
         <button onclick="resetGame()">ЕЩЕ РАЗ</button>
     </div>
+
     <canvas id="game"></canvas>
 
 <script>
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
-const msg = document.getElementById('msg');
+const bestElement = document.getElementById('best');
+const deathText = document.getElementById('death-text');
 
-// Настройки под экран телефона
-canvas.width = window.innerWidth;
-canvas.height = 400;
+// Список смешных концовок
+const phrases = [
+    "Кибрай оказался сильнее...",
+    "Альтушка ушла в андеграунд окончательно",
+    "Пойдем лучше за куртом, ну его этот бег",
+    "Баклажка тебя переиграла",
+    "Минус кеды, плюс грусть",
+    "Слишком много Чилланзара для одной прогулки",
+    "Телебашня смотрит на тебя с осуждением",
+    "В следующий раз перепрыгнешь (нет)",
+    "Бутылка: 1, Альтушка: 0"
+];
 
-let isGameOver = false;
-let score = 0;
-let gameSpeed = 5;
-
-// Объект Альтушки
-const player = {
-    x: 50,
-    y: canvas.height - 60,
-    width: 40,
-    height: 60,
-    color: '#ff00ff', // Фиолетовый (потом заменим на картинку)
-    dy: 0,
-    jumpForce: 12,
-    grounded: false,
-    gravity: 0.6
+const imgs = {
+    bg: new Image(), beer: new Image(), jump: new Image(),
+    run: [new Image(), new Image(), new Image()]
 };
 
-// Препятствия (Бутылки)
-const obstacles = [];
+// Загрузка ресурсов
+imgs.bg.src = 'bg.png';
+imgs.beer.src = 'beer.png';
+imgs.jump.src = 'jump.png';
+imgs.run[0].src = 'run_1.png';
+imgs.run[1].src = 'run_2.png';
+imgs.run[2].src = 'run_3.png';
+
+let gameState = 'MENU';
+let score = 0;
+let bestScore = localStorage.getItem('altushkaBest') || 0;
+bestElement.innerText = `BEST: ${bestScore}`;
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const groundY = canvas.height - (canvas.height / 3.5);
+let gameSpeed = 6;
+let bgX = 0;
+
+const player = {
+    x: 50, y: groundY - 110, w: 90, h: 110,
+    dy: 0, jumpForce: 16, gravity: 0.8, grounded: false,
+    frame: 0, animTick: 0
+};
+
+let obstacles = [];
 
 function spawnObstacle() {
-    const height = 40 + Math.random() * 20;
-    obstacles.push({
-        x: canvas.width,
-        y: canvas.height - height,
-        width: 20,
-        height: height,
-        color: '#00ff00' // Зеленая бутылка
-    });
+    obstacles.push({ x: canvas.width, y: groundY - 65, w: 35, h: 65 });
 }
 
 function update() {
-    if (isGameOver) return;
+    if (gameState !== 'PLAYING') return;
 
-    // Гравитация и прыжок
+    // Параллакс фона
+    bgX -= 1.5;
+    if (bgX <= -canvas.width) bgX = 0;
+
+    // Физика игрока
     player.dy += player.gravity;
     player.y += player.dy;
-
-    if (player.y + player.height > canvas.height) {
-        player.y = canvas.height - player.height;
+    
+    if (player.y + player.h > groundY) {
+        player.y = groundY - player.h;
         player.dy = 0;
         player.grounded = true;
     }
 
-    // Движение препятствий
+    // Анимация бега
+    if (player.grounded) {
+        player.animTick++;
+        if (player.animTick % 7 === 0) player.frame = (player.frame + 1) % 3;
+    }
+
+    // Препятствия
     for (let i = obstacles.length - 1; i >= 0; i--) {
         obstacles[i].x -= gameSpeed;
-
-        // Коллизия (столкновение)
-        if (player.x < obstacles[i].x + obstacles[i].width &&
-            player.x + player.width > obstacles[i].x &&
-            player.y < obstacles[i].y + obstacles[i].height &&
-            player.y + player.height > obstacles[i].y) {
+        
+        // Хитбокс (чуть сужен для комфортной игры)
+        if (player.x + 20 < obstacles[i].x + obstacles[i].w &&
+            player.x + player.w - 20 > obstacles[i].x &&
+            player.y + 15 < obstacles[i].y + obstacles[i].h &&
+            player.y + player.h > obstacles[i].y) {
             gameOver();
         }
 
-        if (obstacles[i].x + obstacles[i].width < 0) {
+        if (obstacles[i].x + obstacles[i].w < 0) {
             obstacles.splice(i, 1);
             score++;
             scoreElement.innerText = score;
-            if (score % 5 === 0) gameSpeed += 0.2; // Ускорение
+            if (score % 6 === 0) gameSpeed += 0.4;
         }
     }
 
-    if (Math.random() < 0.015 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 200)) {
+    if (Math.random() < 0.018 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 320)) {
         spawnObstacle();
     }
 }
@@ -103,53 +147,81 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Рисуем пол
-    ctx.strokeStyle = '#333';
-    ctx.beginPath(); ctx.moveTo(0, canvas.height); ctx.lineTo(canvas.width, canvas.height); ctx.stroke();
+    // Отрисовка зацикленного фона
+    ctx.drawImage(imgs.bg, bgX, 0, canvas.width, canvas.height);
+    ctx.drawImage(imgs.bg, bgX + canvas.width, 0, canvas.width, canvas.height);
 
-    // Рисуем Альтушку (пока квадратом)
-    ctx.fillStyle = player.color;
-    ctx.fillRect(player.x, player.y, player.width, player.height);
+    if (gameState === 'PLAYING' || gameState === 'GAMEOVER') {
+        // Игрок (спрайт меняется при прыжке)
+        const currentImg = player.grounded ? imgs.run[player.frame] : imgs.jump;
+        if (currentImg.complete) {
+            ctx.drawImage(currentImg, player.x, player.y, player.w, player.h);
+        }
 
-    // Рисуем Бутылки
-    ctx.fillStyle = '#00ff00';
-    obstacles.forEach(obs => {
-        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-    });
-
-    requestAnimationFrame(() => {
-        update();
-        draw();
-    });
-}
-
-function jump() {
-    if (player.grounded && !isGameOver) {
-        player.dy = -player.jumpForce;
-        player.grounded = false;
+        // Бутылки Кибрая
+        if (imgs.beer.complete) {
+            obstacles.forEach(o => ctx.drawImage(imgs.beer, o.x, o.y, o.w, o.h));
+        }
     }
 }
 
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+function startGame() {
+    gameState = 'PLAYING';
+    document.getElementById('menu').style.display = 'none';
+    document.getElementById('ui').style.display = 'block';
+}
+
 function gameOver() {
-    isGameOver = true;
-    msg.style.display = 'block';
+    gameState = 'GAMEOVER';
+    document.getElementById('msg').style.display = 'block';
+    // Выбираем случайную фразу
+    deathText.innerText = phrases[Math.floor(Math.random() * phrases.length)];
+    
+    if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem('altushkaBest', bestScore);
+        bestElement.innerText = `BEST: ${bestScore}`;
+    }
 }
 
 function resetGame() {
-    isGameOver = false;
-    score = 0;
-    gameSpeed = 5;
-    obstacles.length = 0;
-    player.y = canvas.height - 60;
-    scoreElement.innerText = '0';
-    msg.style.display = 'none';
+    score = 0; scoreElement.innerText = '0';
+    gameSpeed = 6; obstacles = [];
+    player.y = groundY - 110;
+    gameState = 'PLAYING';
+    document.getElementById('msg').style.display = 'none';
 }
 
-// Управление
-window.addEventListener('touchstart', jump);
-window.addEventListener('keydown', (e) => { if (e.code === 'Space') jump(); });
+// Управление тапом
+window.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (gameState === 'PLAYING' && player.grounded) {
+        player.dy = -player.jumpForce;
+        player.grounded = false;
+    }
+}, { passive: false });
 
-draw();
+// Поддержка пробела для ПК
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+        if (gameState === 'PLAYING') {
+            if (player.grounded) {
+                player.dy = -player.jumpForce;
+                player.grounded = false;
+            }
+        } else if (gameState === 'MENU') startGame();
+        else if (gameState === 'GAMEOVER') resetGame();
+    }
+});
+
+// Запуск после загрузки фона
+imgs.bg.onload = () => loop();
 </script>
 </body>
 </html>
