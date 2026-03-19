@@ -3,127 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TASHKENT CLICKER</title>
+    <title>TASHKENT: SUETA</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root { --ivory: #fdf5e6; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; color: var(--ivory); font-family: 'Times New Roman', serif; font-style: italic; overflow: hidden; }
-        
-        .bg-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('bg.jpg') center center / cover no-repeat; filter: grayscale(100%) brightness(0.1); z-index: 1; }
-        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 20%, black 100%); z-index: 2; }
-
-        .app { position: relative; z-index: 10; height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-
-        /* Хедер с балансом */
-        .header { text-align: center; margin-top: 20px; }
-        .balance { font-size: 36px; letter-spacing: 2px; font-weight: 300; }
-        .currency { font-size: 14px; opacity: 0.5; letter-spacing: 5px; }
-
-        /* Центр: Кнопка клика */
-        .click-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; width: 100%; }
-        .main-btn { 
-            width: 200px; height: 200px; border-radius: 50%; 
-            border: 1px solid rgba(253, 245, 230, 0.2);
-            display: flex; justify-content: center; align-items: center;
-            font-size: 18px; letter-spacing: 5px; text-transform: uppercase;
-            transition: 0.1s; cursor: pointer; backdrop-filter: blur(5px);
-        }
-        .main-btn:active { transform: scale(0.95); background: rgba(253, 245, 230, 0.1); }
-
-        /* Магазин */
-        .shop { width: 100%; max-width: 320px; margin-bottom: 40px; }
-        .shop-title { font-size: 10px; letter-spacing: 3px; opacity: 0.4; text-transform: uppercase; margin-bottom: 15px; text-align: center; }
-        
-        .upgrade-card { 
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px; border-bottom: 0.5px solid rgba(253, 245, 230, 0.1);
-            font-size: 12px; letter-spacing: 1px;
-        }
-        .upgrade-card.locked { opacity: 0.3; }
-        .buy-btn { color: var(--ivory); background: none; border: 0.5px solid var(--ivory); padding: 5px 10px; font-size: 10px; cursor: pointer; }
-
-        .footer { font-size: 8px; opacity: 0.2; letter-spacing: 2px; margin-bottom: 10px; }
-    </style>
 </head>
-<body>
+<body class="character-vip"> <div class="vignette"></div>
 
-<div class="bg-overlay"></div>
-<div class="vignette"></div>
-
-<div class="app">
-    <div class="header">
-        <div class="balance" id="cash-display">328 000</div>
-        <div class="currency">СУМ</div>
-    </div>
-
-    <div class="click-area">
-        <div class="main-btn" onclick="doClick()">Суета</div>
-    </div>
-
-    <div class="shop">
-        <div class="shop-title">Развитие бизнеса</div>
-        
-        <div class="upgrade-card">
-            <div>
-                <span>Знакомый на заправке</span><br>
-                <small style="opacity:0.5">+500 сум/сек</small>
+    <div class="app">
+        <div class="header">
+            <div class="balance">
+                <span id="cash-display">328 000</span> <small>СУМ</small>
             </div>
-            <button class="buy-btn" onclick="buyUpgrade(50000, 500)">100к</button>
+            <div id="income-display" class="income-info">Доход: 0 / сек</div>
         </div>
 
-        <div class="upgrade-card">
-            <div>
-                <span>Точка на Абу-Сахий</span><br>
-                <small style="opacity:0.5">+5000 сум/сек</small>
+        <div class="lore-container">
+            <div id="lore-display" class="lore-text">
+                Ночные катания до добра не доводят... Ты открываешь глаза. В ушах звон. Ты в разбитой машине на окраине города.
             </div>
-            <button class="buy-btn" onclick="buyUpgrade(250000, 5000)">500к</button>
         </div>
+
+        <div class="click-section">
+            <div class="main-btn" onclick="doSueta()">
+                <span>СУЕТИТЬ</span>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <button class="nav-item" onclick="switchTab('assets')">ИМУЩЕСТВО</button>
+            <button class="nav-item active" onclick="switchTab('shop')">МАГАЗИН</button>
+            <button class="nav-item" onclick="switchTab('leaderboard')">ЛИДЕРЫ</button>
+        </nav>
     </div>
 
-    <div class="footer">BUILD: 0.1.5-CLICKER // TEST_MODE</div>
-</div>
+    <div id="tab-overlay" class="overlay">
+        <button class="close-overlay" onclick="closeTab()">✕</button>
+        <div id="tab-content" class="overlay-content">
+            </div>
+    </div>
 
-<script>
-    let tg = window.Telegram.WebApp;
-    tg.expand();
-
-    // Состояние игры
-    let cash = 328000;
-    let incomePerSecond = 0;
-    let clickPower = 100;
-
-    function updateDisplay() {
-        document.getElementById('cash-display').innerText = Math.floor(cash).toLocaleString('ru-RU');
-    }
-
-    function doClick() {
-        cash += clickPower;
-        tg.HapticFeedback.impactOccurred('light');
-        updateDisplay();
-    }
-
-    function buyUpgrade(cost, income) {
-        if (cash >= cost) {
-            cash -= cost;
-            incomePerSecond += income;
-            tg.HapticFeedback.notificationOccurred('success');
-            updateDisplay();
-        } else {
-            tg.HapticFeedback.notificationOccurred('error');
-        }
-    }
-
-    // Цикл пассивного дохода
-    setInterval(() => {
-        if (incomePerSecond > 0) {
-            cash += incomePerSecond / 10; // Добавляем каждые 100мс для плавности
-            updateDisplay();
-        }
-    }, 100);
-
-    updateDisplay();
-</script>
-
+    <script src="logic.js"></script>
 </body>
 </html>
