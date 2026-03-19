@@ -21,8 +21,8 @@
 
         <div class="bottom-nav">
             <button class="nav-item" onclick="openTab('assets')">ИМУЩЕСТВО</button>
-            <button class="nav-item active" onclick="openTab('shop')">МАГАЗИН</button>
-            <button class="nav-item" onclick="openTab('leaderboard')">КОД</button>
+            <button class="nav-item active" id="shop-nav" onclick="openTab('shop')">МАГАЗИН</button>
+            <button class="nav-item" id="code-nav" onclick="openTab('leaderboard')">КОД</button>
         </div>
     </div>
 
@@ -31,7 +31,6 @@
             <button class="static-back-btn" onclick="goBack()">← НАЗАД</button>
             <div class="overlay-balance"><span id="overlay-balance-val">0</span> СУМ</div>
         </div>
-        
         <div id="main-content" class="overlay-content"></div>
     </div>
 
