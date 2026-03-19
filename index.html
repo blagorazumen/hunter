@@ -7,46 +7,75 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
     <style>
-        /* Стиль: Молочный курсив */
-        :root { --bg: #000; --accent: #fdf5e6; --text: #fdf5e6; }
+        :root { --bg: #000; --ivory: #fdf5e6; }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; font-style: italic; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000 !important; color: var(--text); font-family: 'Georgia', serif; overflow: hidden; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000 !important; color: var(--ivory); font-family: 'Times New Roman', serif; overflow-x: hidden; }
         
-        #preloader { position: fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .loader-text { color: var(--accent); letter-spacing: 3px; animation: pulse 2s infinite; font-size: 14px; }
-
-        #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 1.2s ease; filter: invert(100%) sepia(10%) hue-rotate(320deg) brightness(0.9) contrast(1.1); }
+        #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; filter: invert(100%) sepia(20%) brightness(0.8) contrast(1.2); }
         
-        .ui-layer { position: relative; z-index: 100; pointer-events: none; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
-        .header { padding: 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); text-align: center; pointer-events: auto; border-bottom: 0.5px solid rgba(253, 245, 230, 0.3); }
+        .header { position: relative; z-index: 100; padding: 25px; text-align: center; background: rgba(0,0,0,0.8); border-bottom: 0.5px solid rgba(253, 245, 230, 0.15); }
         
         #submit-modal { 
-            position: fixed; bottom: -100%; left: 0; width: 100%; background: #0a0a0a; 
-            border-top: 1px solid var(--accent); transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 200; pointer-events: auto; padding: 25px;
+            position: fixed; bottom: -100%; left: 0; width: 100%; height: 85vh;
+            background: rgba(8, 8, 8, 0.98); backdrop-filter: blur(15px);
+            border-top: 1px solid var(--ivory); transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
+            z-index: 200; padding: 30px; overflow-y: auto;
         }
         #submit-modal.open { bottom: 0; }
-        input, textarea { width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(253, 245, 230, 0.2); color: #fff; padding: 12px 0; margin: 10px 0; font-family: inherit; font-size: 16px; }
-        input:focus { border-bottom-color: var(--accent); outline: none; }
         
-        .btn-send { background: var(--accent); color: #000; border: none; width: 100%; padding: 16px; font-weight: bold; text-transform: uppercase; margin-top: 20px; letter-spacing: 1px; }
+        input[type="text"], textarea, select { 
+            width: 100%; background: transparent; border: none; 
+            border-bottom: 0.5px solid rgba(253, 245, 230, 0.2); 
+            color: var(--ivory); padding: 12px 0; margin: 5px 0; 
+            font-family: inherit; font-size: 16px; outline: none; appearance: none;
+        }
 
-        @keyframes pulse { 0% { opacity: 0.2; } 50% { opacity: 0.8; } 100% { opacity: 0.2; } }
+        /* Кастомный чекбокс */
+        .checkbox-container { display: flex; align-items: center; margin: 15px 0; font-size: 14px; opacity: 0.8; }
+        input[type="checkbox"] { width: 18px; height: 18px; margin-right: 10px; accent-color: var(--ivory); }
+
+        /* Поле дресс-кода (скрытое) */
+        #dc-description-wrapper { max-height: 0; overflow: hidden; transition: 0.4s ease-out; opacity: 0; }
+        #dc-description-wrapper.visible { max-height: 100px; opacity: 1; margin-top: 5px; }
+        
+        .btn-send { 
+            background: var(--ivory); color: #000; border: none; 
+            width: 100%; padding: 18px; font-weight: bold; 
+            text-transform: uppercase; margin-top: 25px; letter-spacing: 2px;
+        }
     </style>
 </head>
 <body>
-    <div id="preloader"><div class="loader-text"><i>Initializing terminal...</i></div></div>
     <div id="map"></div>
-    <div class="ui-layer">
-        <div class="header"><div style="color:var(--accent); font-size:13px; letter-spacing: 2px;"><i>GATEKEEPER • ORG_TERMINAL</i></div></div>
+    <div class="header">
+        <div style="font-size:11px; letter-spacing: 4px; opacity: 0.8;"><i>GATEKEEPER • CONTROL</i></div>
     </div>
 
     <div id="submit-modal">
-        <div style="color:var(--accent); font-size: 11px; margin-bottom: 10px; opacity: 0.7;"><i>Location coordinates: <span id="coords-display">0.0, 0.0</span></i></div>
-        <input type="text" id="raveName" placeholder="Event name...">
-        <input type="text" id="raveTime" placeholder="Date & Time...">
-        <textarea id="raveDesc" rows="3" placeholder="Description & Line-up..."></textarea>
-        <button class="btn-send" onclick="sendData()">Confirm submission</button>
-        <button onclick="closeModal()" style="background:none; border:none; color:#666; width:100%; margin-top:15px; font-size:12px;"><i>[ Dismiss ]</i></button>
+        <div style="font-size: 9px; letter-spacing: 2px; opacity: 0.5; margin-bottom: 15px;"><i>COORDINATES: <span id="coords-display">...</span></i></div>
+        
+        <input type="text" id="raveName" placeholder="Event Name">
+        <input type="text" id="raveTime" placeholder="Date & Time">
+        
+        <select id="ageLimit">
+            <option value="18+">Face Control: 18+</option>
+            <option value="21+">Face Control: 21+</option>
+            <option value="no limit">No age limit</option>
+        </select>
+
+        <label class="checkbox-container">
+            <input type="checkbox" id="dc-trigger" onchange="toggleDressCode()"> 
+            <i>Special Dress Code?</i>
+        </label>
+        
+        <div id="dc-description-wrapper">
+            <input type="text" id="dc-text" placeholder="Describe Dress Code (e.g. Total Black)">
+        </div>
+
+        <textarea id="raveDesc" rows="2" placeholder="Additional info..."></textarea>
+        
+        <button class="btn-send" onclick="sendData()">Deploy Event</button>
+        <button onclick="closeModal()" style="background:none; border:none; color:rgba(253,245,230,0.4); width:100%; margin-top:15px; font-size:10px;"><i>[ DISMISS ]</i></button>
     </div>
 
     <script>
@@ -54,16 +83,19 @@
         let selectedCoords = null;
         tg.expand();
 
-        ymaps.ready(function() {
-            var myMap = new ymaps.Map("map", { center: [41.311, 69.240], zoom: 12, controls: [] });
-            document.getElementById('map').style.opacity = "1";
-            document.getElementById('preloader').style.opacity = "0";
-            setTimeout(() => { document.getElementById('preloader').style.display = "none"; }, 600);
+        function toggleDressCode() {
+            const wrapper = document.getElementById('dc-description-wrapper');
+            const isChecked = document.getElementById('dc-trigger').checked;
+            wrapper.className = isChecked ? 'visible' : '';
+            if(isChecked) tg.HapticFeedback.impactOccurred('light');
+        }
 
+        ymaps.ready(function() {
+            var myMap = new ymaps.Map("map", { center: [41.311, 69.240], zoom: 13, controls: [] });
             myMap.events.add('click', function (e) {
                 selectedCoords = e.get('coords');
-                document.getElementById('coords-display').innerText = selectedCoords[0].toFixed(4) + ", " + selectedCoords[1].toFixed(4);
-                tg.HapticFeedback.impactOccurred('light');
+                document.getElementById('coords-display').innerText = selectedCoords[0].toFixed(5) + " / " + selectedCoords[1].toFixed(5);
+                tg.HapticFeedback.impactOccurred('medium');
                 document.getElementById('submit-modal').classList.add('open');
             });
         });
@@ -74,11 +106,16 @@
             const data = {
                 name: document.getElementById('raveName').value,
                 time: document.getElementById('raveTime').value,
+                age: document.getElementById('ageLimit').value,
+                dc: document.getElementById('dc-trigger').checked ? document.getElementById('dc-text').value : "None",
                 desc: document.getElementById('raveDesc').value,
                 coords: selectedCoords
             };
-            if (!data.name || !selectedCoords) { tg.showAlert("Please select a location."); return; }
-            tg.sendData(`✨ NEW SUBMISSION:\nName: ${data.name}\nTime: ${data.time}\nCoords: ${data.coords}\nInfo: ${data.desc}`);
+            
+            if (!data.name || !selectedCoords) { tg.showAlert("Incomplete data."); return; }
+            
+            const msg = `✨ NEW SUBMISSION\n\nName: ${data.name}\nTime: ${data.time}\nAge: ${data.age}\nDressCode: ${data.dc}\nCoords: ${data.coords}\nInfo: ${data.desc}`;
+            tg.sendData(msg);
             tg.close();
         }
     </script>
