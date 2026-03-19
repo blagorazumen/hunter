@@ -2,42 +2,154 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WC HUNTER</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Altushka Run</title>
+    <style>
+        body { margin: 0; background: #1a1a1a; color: white; font-family: sans-serif; overflow: hidden; touch-action: manipulation; }
+        canvas { display: block; background: #222; border-bottom: 4px solid #ff00ff; }
+        #ui { position: absolute; top: 20px; left: 20px; font-size: 24px; text-shadow: 2px 2px #000; }
+        #msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; display: none; }
+        button { background: #ff00ff; border: none; padding: 15px 30px; color: white; font-size: 20px; border-radius: 10px; cursor: pointer; }
+    </style>
 </head>
 <body>
-    <div class="app">
-        <div class="header">
-            <div class="balance"><span id="cash-display">100 000</span> СУМ</div>
-            <div id="income-display" class="income-text">ДОХОД: 0 / СЕК</div>
-        </div>
-
-        <div class="photo-zone">
-            <div class="img-placeholder">МЕСТО ДЛЯ АРТА</div>
-        </div>
-
-        <div class="click-section">
-            <div id="emoji-container"></div>
-            <button class="main-btn" onclick="suetaClick()">СУЕТИТЬ</button>
-        </div>
-
-        <div class="bottom-nav">
-            <button class="nav-item" onclick="openTab('shop', 'Магазин')">🛒</button>
-            <button class="nav-item" onclick="openTab('assets', 'Имущество')">🛡️</button>
-            <button class="nav-item" onclick="openTab('menu', 'Меню')">☰</button>
-        </div>
+    <div id="ui">Счет: <span id="score">0</span></div>
+    <div id="msg">
+        <h1 style="color: #ff00ff;">ПОТРАЧЕНО</h1>
+        <p>Бутылка оказалась сильнее...</p>
+        <button onclick="resetGame()">ЕЩЕ РАЗ</button>
     </div>
+    <canvas id="game"></canvas>
 
-    <div id="main-overlay" class="overlay">
-        <div class="overlay-header">
-            <button class="nav-btn" onclick="goBack()">← НАЗАД</button>
-            <div id="overlay-title" class="title-gold">МАГАЗИН</div>
-            <button class="nav-btn" onclick="closeAll()">✕ ВЫХОД</button>
-        </div>
-        <div id="main-content" class="overlay-body"></div>
-    </div>
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const scoreElement = document.getElementById('score');
+const msg = document.getElementById('msg');
 
-    <script src="logic.js"></script>
+// Настройки под экран телефона
+canvas.width = window.innerWidth;
+canvas.height = 400;
+
+let isGameOver = false;
+let score = 0;
+let gameSpeed = 5;
+
+// Объект Альтушки
+const player = {
+    x: 50,
+    y: canvas.height - 60,
+    width: 40,
+    height: 60,
+    color: '#ff00ff', // Фиолетовый (потом заменим на картинку)
+    dy: 0,
+    jumpForce: 12,
+    grounded: false,
+    gravity: 0.6
+};
+
+// Препятствия (Бутылки)
+const obstacles = [];
+
+function spawnObstacle() {
+    const height = 40 + Math.random() * 20;
+    obstacles.push({
+        x: canvas.width,
+        y: canvas.height - height,
+        width: 20,
+        height: height,
+        color: '#00ff00' // Зеленая бутылка
+    });
+}
+
+function update() {
+    if (isGameOver) return;
+
+    // Гравитация и прыжок
+    player.dy += player.gravity;
+    player.y += player.dy;
+
+    if (player.y + player.height > canvas.height) {
+        player.y = canvas.height - player.height;
+        player.dy = 0;
+        player.grounded = true;
+    }
+
+    // Движение препятствий
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+        obstacles[i].x -= gameSpeed;
+
+        // Коллизия (столкновение)
+        if (player.x < obstacles[i].x + obstacles[i].width &&
+            player.x + player.width > obstacles[i].x &&
+            player.y < obstacles[i].y + obstacles[i].height &&
+            player.y + player.height > obstacles[i].y) {
+            gameOver();
+        }
+
+        if (obstacles[i].x + obstacles[i].width < 0) {
+            obstacles.splice(i, 1);
+            score++;
+            scoreElement.innerText = score;
+            if (score % 5 === 0) gameSpeed += 0.2; // Ускорение
+        }
+    }
+
+    if (Math.random() < 0.015 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 200)) {
+        spawnObstacle();
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Рисуем пол
+    ctx.strokeStyle = '#333';
+    ctx.beginPath(); ctx.moveTo(0, canvas.height); ctx.lineTo(canvas.width, canvas.height); ctx.stroke();
+
+    // Рисуем Альтушку (пока квадратом)
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    // Рисуем Бутылки
+    ctx.fillStyle = '#00ff00';
+    obstacles.forEach(obs => {
+        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+    });
+
+    requestAnimationFrame(() => {
+        update();
+        draw();
+    });
+}
+
+function jump() {
+    if (player.grounded && !isGameOver) {
+        player.dy = -player.jumpForce;
+        player.grounded = false;
+    }
+}
+
+function gameOver() {
+    isGameOver = true;
+    msg.style.display = 'block';
+}
+
+function resetGame() {
+    isGameOver = false;
+    score = 0;
+    gameSpeed = 5;
+    obstacles.length = 0;
+    player.y = canvas.height - 60;
+    scoreElement.innerText = '0';
+    msg.style.display = 'none';
+}
+
+// Управление
+window.addEventListener('touchstart', jump);
+window.addEventListener('keydown', (e) => { if (e.code === 'Space') jump(); });
+
+draw();
+</script>
 </body>
 </html>
