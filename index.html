@@ -1,222 +1,169 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Ксюшачка^ Final</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Ксюшачка^</title>
+    <style>
+        body { margin: 0; background: #000; color: white; font-family: 'Courier New', monospace; overflow: hidden; touch-action: manipulation; }
+        canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; transition: filter 3s ease; }
+        
+        #ui, #menu, #cutscene, #death-screen { position: absolute; left: 0; width: 100%; height: 100%; text-align: center; z-index: 100; pointer-events: none; }
+        #ui { top: 20px; height: auto; font-size: 28px; display: none; color: #ff00ff; text-shadow: 2px 2px #000; }
+        
+        .overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; background: rgba(0,0,0,0.8); }
+        h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 20px; }
+        
+        #death-screen { display: none; }
+        #death-msg { color: #00ffff; font-size: 24px; font-weight: bold; margin-bottom: 30px; text-shadow: 2px 2px #ff00ff; }
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        #cutscene { 
+            display: none; background: #000; pointer-events: auto;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            flex-direction: column; justify-content: center; align-items: center;
+        }
+        /* Исправление отображения фото */
+        #cutscene img { 
+            width: auto; height: auto;
+            max-width: 100%; max-height: 80vh; 
+            object-fit: contain;
+            display: block;
+            opacity: 0; transition: opacity 1s ease-in-out;
+            border: 2px solid #ff00ff;
+        }
+        #cutscene img.show { opacity: 1; }
 
-<style>
-body { margin: 0; background: #000; color: white; font-family: 'Courier New', monospace; overflow: hidden; touch-action: manipulation; }
-
-/* 🔥 ВАЖНЫЙ ФИКС КЛИКОВ */
-canvas { display:block; position:fixed; top:0; left:0; z-index:1; transition: filter 0.1s ease; pointer-events:none; }
-
-h1 { 
-    font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 20px;
-    background: linear-gradient(to right, #ff00ff, #00ffff, #ffff00, #ff00ff);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: rainbow-text 3s linear infinite;
-}
-@keyframes rainbow-text { to { background-position: 200% center; } }
-
-#ui { position:absolute; top:15px; left:15px; width:calc(100% - 30px); display:none; justify-content:space-between; z-index:100; pointer-events:none; }
-.ui-stats { font-size:22px; color:#ff00ff; text-shadow:2px 2px #000; font-weight:bold; }
-
-#boost-control { position:absolute; bottom:30px; right:20px; z-index:1000; display:none; pointer-events:auto; }
-
-#menu, #shop, #cutscene, #death-screen { position:absolute; left:0; width:100%; height:100%; text-align:center; z-index:100; pointer-events:none; }
-.overlay { display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:auto; background: rgba(0,0,0,0.85); }
-
-.menu-btn { background:#ff00ff; border:none; padding:15px 40px; color:white; font-size:18px; border-radius:12px; cursor:pointer; box-shadow:0 6px #990099; font-weight:bold; pointer-events:auto; margin:10px; width:260px; }
-.btn-shop { background:#ffff00; color:#000; box-shadow:0 6px #999900; }
-.btn-free { background:#00ffff; box-shadow:0 6px #009999; color:#000; }
-
-#shop { display:none; }
-.shop-item { background:rgba(255,255,255,0.1); padding:20px; border-radius:15px; border:2px solid #ffff00; margin:20px; width:80%; max-width:300px; }
-#death-screen { display:none; }
-
-#leaderboard { margin-top:20px; width:85%; background:rgba(255,0,255,0.1); border:1px solid #ff00ff; border-radius:10px; padding:10px; font-size:13px; }
-.leader-item { display:flex; justify-content:space-between; border-bottom:1px dashed #444; padding:4px 0; }
-
-#cutscene { display:none; background:#000; pointer-events:auto; }
-#cutscene img { max-width:90%; max-height:70vh; opacity:0; transition: opacity 1s; border:2px solid #ff00ff; }
-#cutscene img.show { opacity:1; }
-</style>
+        button { background: #ff00ff; border: none; padding: 15px 50px; color: white; font-size: 22px; border-radius: 12px; cursor: pointer; box-shadow: 0 6px #990099; font-weight: bold; pointer-events: auto; }
+        button:active { transform: translateY(3px); box-shadow: 0 2px #990099; }
+    </style>
 </head>
-
 <body>
-
-<div id="ui">
-    <div class="ui-stats">SCORE: <span id="score">0</span></div>
-    <div class="ui-stats" style="color:#ffff00">💊: <span id="pills-count">0</span></div>
-</div>
-
-<div id="boost-control">
-    <button class="btn-boost-active" onclick="activateBoost()">🚀<br><span id="boost-count-ui">0</span></button>
-</div>
-
-<div id="menu" class="overlay">
-    <h1>КСЮШАЧКА^</h1>
-    <button class="menu-btn" onclick="startGame('STORY')">СЮЖЕТ</button>
-    <button class="menu-btn btn-free" onclick="startGame('FREE')">СВОБОДНЫЙ ЗАБЕГ</button>
-    <button class="menu-btn btn-shop" onclick="toggleShop(true)">🛒 МАГАЗИН</button>
-    <div id="leaderboard"><div id="leader-list">Загрузка...</div></div>
-</div>
-
-<div id="shop" class="overlay">
-    <h1>МАГАЗИН</h1>
-    <div style="color:#ffff00; font-size:24px;">💊 <span id="shop-pills">0</span></div>
-    <div class="shop-item">
-        <div>БУСТ СКОРОСТИ (x3)</div>
-        <button class="menu-btn" onclick="buyBoost()">КУПИТЬ (10 💊)</button>
+    <div id="ui">SCORE: <span id="score">0</span></div>
+    
+    <div id="menu" class="overlay">
+        <h1>КСЮШАЧКА^</h1>
+        <button onclick="startGame()">ИГРАТЬ</button>
     </div>
-    <button class="menu-btn btn-free" onclick="toggleShop(false)">НАЗАД</button>
-</div>
 
-<div id="death-screen" class="overlay">
-    <h1>ППЦ;)</h1>
-    <button class="menu-btn" onclick="location.reload()">В МЕНЮ</button>
-</div>
+    <div id="death-screen" class="overlay">
+        <h1>ППЦ;)</h1>
+        <div id="death-msg"></div>
+        <button onclick="location.reload()">ЕЩЁ РАЗ</button>
+    </div>
 
-<div id="cutscene" class="overlay">
-    <img id="cutscene-img" src="">
-    <button id="next-btn" class="menu-btn">ДАЛЕЕ</button>
-</div>
+    <div id="cutscene">
+        <img id="cutscene-img" src="" alt="Финал">
+        <button id="next-btn" style="margin-top:20px;">ДАЛЕЕ</button>
+    </div>
 
-<canvas id="game"></canvas>
+    <canvas id="game"></canvas>
 
 <script>
-// === ВСЁ ТВОЁ ОСТАВЛЕНО ===
-
-const SUPABASE_URL = 'https://rfjruwbeiaahegzmowcc.supabase.co';
-const SUPABASE_KEY = 'ТВОЙ КЛЮЧ';
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-const tg = window.Telegram.WebApp;
-tg.expand();
-const playerName = tg.initDataUnsafe?.user?.username || "Скуф";
-
-let pillsDb = 0, boostsDb = 0, maxScore = 0;
-
-async function fetchUserData() {
-    const { data } = await _supabase.from('records').select('*').eq('username', playerName).single();
-    if (data) {
-        pillsDb = data.pills || 0;
-        boostsDb = data.speed || 0;
-        maxScore = data.score || 0;
-        updateUI();
-    }
-}
-fetchUserData();
-
-function updateUI() {
-    document.getElementById('pills-count').innerText = pillsDb;
-    document.getElementById('shop-pills').innerText = pillsDb;
-    document.getElementById('boost-count-ui').innerText = boostsDb;
-}
-
-async function forceSync() {
-    await _supabase.from('records').upsert({
-        username: playerName,
-        pills: pillsDb,
-        speed: boostsDb,
-        score: maxScore
-    }, { onConflict: 'username' });
-}
-
-function toggleShop(show) {
-    document.getElementById('menu').style.display = show ? 'none' : 'flex';
-    document.getElementById('shop').style.display = show ? 'flex' : 'none';
-}
-
-function buyBoost() {
-    if (pillsDb >= 10) {
-        pillsDb -= 10; boostsDb++;
-        updateUI(); forceSync();
-    }
-}
-
-// === ИГРА ===
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
+const deathScreen = document.getElementById('death-screen');
+const deathMsg = document.getElementById('death-msg');
+const cutsceneDiv = document.getElementById('cutscene');
+const cutsceneImg = document.getElementById('cutscene-img');
 
-canvas.width = innerWidth;
-canvas.height = innerHeight;
+const imgs = {
+    bg: new Image(), beer: new Image(), jump: new Image(),
+    run: [new Image(), new Image(), new Image()], house: new Image()
+};
+imgs.bg.src = 'bg.png'; imgs.beer.src = 'beer.png'; imgs.jump.src = 'jump.png';
+imgs.run[0].src = 'run_1.png'; imgs.run[1].src = 'run_2.png'; imgs.run[2].src = 'run_3.png';
+imgs.house.src = 'house.png';
 
-const imgs = { bg:new Image(), beer:new Image(), pills:new Image(), jump:new Image(), run:[new Image(),new Image(),new Image()], house:new Image() };
+const slides = ['end_1.jpg', 'end_2.jpg', 'end_3.jpg', 'end_4.jpg', 'end_5.jpg'];
+const phrases = ["АНДЕГРАУНД НЕ ПРОЩАЕТ", "ЧИЛАНЗАРСКИЕ ДВОРИКИ ЖДУТ", "ТЫ СЛИШКОМ ПЬЯНА ДЛЯ ЭТОГО", "КИБРАЙ ОКАЗАЛСЯ СИЛЬНЕЕ", "ЭТО ТЕБЕ НЕ ВПИСКА", "ПЕРЕБРАЛА С КИСЛОТОЙ?"];
 
-imgs.bg.src='bg.png';
-imgs.beer.src='beer.png';
-imgs.pills.src='pills.png';
-imgs.jump.src='jump.png';
-imgs.run[0].src='run_1.png';
-imgs.run[1].src='run_2.png';
-imgs.run[2].src='run_3.png';
-imgs.house.src='house.png';
+let currentSlide = 0, gameState = 'MENU', score = 0, gameSpeed = 7.2, houseX = -5000;
 
-let gameState='MENU';
-let score=0;
-const groundY = canvas.height - (canvas.height/3.5);
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+const groundY = canvas.height - (canvas.height / 3.5);
 
-const player = { x:50, y:groundY-110, w:90, h:110, dy:0, grounded:false };
+const player = { x: 50, y: groundY - 110, w: 90, h: 110, dy: 0, jf: 17.5, g: 0.75, grounded: false, frame: 0, tick: 0 };
+let obstacles = [];
 
 function startGame() {
-    gameState='PLAYING';
-    document.getElementById('menu').style.display='none';
-    document.getElementById('ui').style.display='flex';
-    document.getElementById('boost-control').style.display='block';
-    updateUI(); // 🔥 фикс
+    gameState = 'PLAYING';
+    document.getElementById('menu').style.display = 'none';
+    document.getElementById('ui').style.display = 'block';
 }
-
-function activateBoost(){}
 
 function update() {
-    if(gameState!=='PLAYING') return;
+    if (gameState !== 'PLAYING') return;
 
-    player.dy+=0.75;
-    player.y+=player.dy;
+    player.dy += player.g; player.y += player.dy;
+    if (player.y + player.h > groundY) { player.y = groundY - player.h; player.dy = 0; player.grounded = true; }
+    if (player.grounded) { player.tick++; if (player.tick % 7 === 0) player.frame = (player.frame + 1) % 3; }
 
-    if(player.y+player.h>groundY){
-        player.y=groundY-player.h;
-        player.dy=0;
-        player.grounded=true;
+    if (score >= 28 && houseX < -1000) houseX = canvas.width;
+    if (houseX > -1000) {
+        houseX -= gameSpeed;
+        // Момент встречи с домом
+        if (player.x + player.w > houseX + 100) {
+            gameState = 'WAIT_FINALE';
+            canvas.style.filter = 'brightness(0)'; // Затемнение
+            setTimeout(startCutscene, 3000); // Пауза 3 сек
+        }
+    }
+
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+        obstacles[i].x -= gameSpeed;
+        let o = obstacles[i];
+        if (player.x + 35 < o.x + o.w && player.x + player.w - 35 > o.x && player.y + 10 < o.y + o.h && player.y + player.h > o.y + 10) {
+            gameState = 'DEAD';
+            deathMsg.innerText = phrases[Math.floor(Math.random() * phrases.length)];
+            deathScreen.style.display = 'flex';
+        }
+        if (o.x + o.w < 0) { obstacles.splice(i, 1); score++; document.getElementById('score').innerText = score; }
+    }
+
+    if (score < 28 && Math.random() < 0.04 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 320)) {
+        obstacles.push({ x: canvas.width, y: groundY - 75, w: 45, h: 75 });
     }
 }
 
-function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    // 🔥 главный фикс
-    if(imgs.bg.complete){
-        ctx.drawImage(imgs.bg,0,0,canvas.width,canvas.height);
-    } else {
-        ctx.fillStyle="#000";
-        ctx.fillRect(0,0,canvas.width,canvas.height);
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(imgs.bg, 0, 0, canvas.width, canvas.height);
+    if (gameState === 'PLAYING' || gameState === 'WAIT_FINALE') {
+        if (houseX > -1000) ctx.drawImage(imgs.house, houseX, groundY - 320, 320, 320);
+        obstacles.forEach(o => ctx.drawImage(imgs.beer, o.x, o.y, o.w, o.h));
+        const cur = player.grounded ? imgs.run[player.frame] : imgs.jump;
+        ctx.drawImage(cur, player.x, player.y, player.w, player.h);
     }
-
-    if(gameState==='PLAYING'){
-        ctx.fillStyle="white";
-        ctx.fillRect(player.x,player.y,player.w,player.h);
-    }
-
     requestAnimationFrame(draw);
 }
 
-window.addEventListener('touchstart', (e)=>{
-    if(gameState==='PLAYING' && player.grounded && e.target.tagName!=='BUTTON'){
-        player.dy=-17;
-        player.grounded=false;
-    }
+function startCutscene() {
+    gameState = 'CUT';
+    cutsceneDiv.style.display = 'flex';
+    document.getElementById('ui').style.display = 'none';
+    showSlide();
+}
+
+function showSlide() {
+    if (currentSlide < slides.length) {
+        cutsceneImg.classList.remove('show');
+        // Небольшая задержка перед сменой кадра для плавности
+        setTimeout(() => {
+            cutsceneImg.src = slides[currentSlide];
+            cutsceneImg.onload = () => cutsceneImg.classList.add('show');
+        }, 100);
+    } else location.reload();
+}
+
+document.getElementById('next-btn').onclick = () => { currentSlide++; showSlide(); };
+window.addEventListener('touchstart', (e) => { 
+    if (gameState === 'PLAYING' && player.grounded && e.target.tagName !== 'BUTTON') { 
+        player.dy = -player.jf; player.grounded = false; 
+    } 
 });
 
-setInterval(update,1000/60);
+setInterval(update, 1000/60);
 draw();
 </script>
-
 </body>
 </html>
