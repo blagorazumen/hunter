@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Pill Catch</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; }
+        canvas { display: block; }
+        #ui { position: absolute; top: 20px; width: 100%; text-align: center; color: #00ffff; font-size: 24px; text-shadow: 2px 2px #000; pointer-events: none; }
+        .btn { position: absolute; bottom: 30px; padding: 20px; background: rgba(0,255,255,0.2); color: #fff; border: 2px solid #00ffff; border-radius: 50%; width: 60px; height: 60px; font-size: 30px; display: flex; align-items: center; justify-content: center; }
+        #left { left: 20px; } #right { right: 20px; }
+    </style>
+</head>
+<body>
+    <div id="ui">ТАБЛЕТОК: <span id="score">0</span></div>
+    <div id="left" class="btn">←</div><div id="right" class="btn">→</div>
+    <canvas id="game"></canvas>
+<script>
+const canvas = document.getElementById('game'); const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+const imgs = { bg: new Image(), pill: new Image(), beer: new Image(), player: new Image() };
+imgs.bg.src = '../bg.png'; imgs.pill.src = '../pill.png'; imgs.beer.src = '../beer.png'; imgs.player.src = '../run_1.png';
+
+let score = 0; const p = { x: canvas.width/2 - 40, y: canvas.height - 130, w: 80, h: 100, speed: 8 };
+let items = []; let keys = { L: false, R: false };
+
+function spawn() { items.push({ x: Math.random()*(canvas.width-40), y: -50, w: 40, h: 45, type: Math.random()>0.4?'pill':'beer', speed: 4+Math.random()*4 }); }
+function update() {
+    if (keys.L && p.x > 0) p.x -= p.speed; if (keys.R && p.x < canvas.width - p.w) p.x += p.speed;
+    for (let i = items.length-1; i>=0; i--) {
+        items[i].y += items[i].speed;
+        if (items[i].x < p.x+p.w && items[i].x+items[i].w > p.x && items[i].y < p.y+p.h && items[i].y+items[i].h > p.y) {
+            if (items[i].type === 'pill') { score++; document.getElementById('score').innerText = score; items.splice(i,1); }
+            else { alert("ППЦ;) ПЕРЕБРАЛА!"); location.reload(); }
+        } else if (items[i].y > canvas.height) items.splice(i,1);
+    }
+    if (Math.random() < 0.04) spawn();
+}
+function draw() {
+    ctx.drawImage(imgs.bg, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(imgs.player, p.x, p.y, p.w, p.h);
+    items.forEach(it => ctx.drawImage(it.type==='pill'?imgs.pill:imgs.beer, it.x, it.y, it.w, it.h));
+}
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+document.getElementById('left').ontouchstart = () => keys.L = true;
+document.getElementById('left').ontouchend = () => keys.L = false;
+document.getElementById('right').ontouchstart = () => keys.R = true;
+document.getElementById('right').ontouchend = () => keys.R = false;
+loop();
+</script>
+</body>
+</html>
+
