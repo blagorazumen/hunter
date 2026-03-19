@@ -5,20 +5,17 @@ let cash = 328000;
 let income = 0;
 let clickValue = 50;
 
-// Обновление цифр на экране
 function updateUI() {
     document.getElementById('cash-display').innerText = Math.floor(cash).toLocaleString('ru-RU');
     document.getElementById('income-display').innerText = `Доход: ${income} / сек`;
 }
 
-// Клик
 function doSueta() {
     cash += clickValue;
     tg.HapticFeedback.impactOccurred('medium');
     updateUI();
 }
 
-// Переключение вкладок меню
 function switchTab(tab) {
     tg.HapticFeedback.selectionChanged();
     const overlay = document.getElementById('tab-overlay');
@@ -27,15 +24,29 @@ function switchTab(tab) {
 
     if (tab === 'shop') {
         content.innerHTML = `
-            <h2>МАГАЗИН ТЕМ</h2>
-            <div style="border: 1px solid #333; padding: 10px; margin-top: 20px;" onclick="buyBusiness(100000, 500)">
-                Связи на заправке<br><small>Цена: 100к | Доход: +500/сек</small>
+            <h2 style="letter-spacing: 5px;">МАГАЗИН</h2>
+            <div class="shop-nav-grid">
+                <button class="shop-btn" onclick="openCategory('wheels')">РУЛЬ И КОЛЁСА</button>
+                <button class="shop-btn" onclick="openCategory('clothes')">ОДЁЖКА</button>
+                <button class="shop-btn" onclick="openCategory('tasks')">ТЕМКИ</button>
             </div>
         `;
     } else if (tab === 'leaderboard') {
-        content.innerHTML = `<h2>ТАБЛИЦА ЛИДЕРОВ</h2><p>Ты на 1-м месте (тест)</p>`;
+        content.innerHTML = `<h2>ЛИДЕРЫ</h2><p>Тут будут лучшие суетологи.</p>`;
     } else if (tab === 'assets') {
-        content.innerHTML = `<h2>ТВОЁ ИМУЩЕСТВО</h2><p>Пока только пыль на ботинках...</p>`;
+        content.innerHTML = `<h2>ИМУЩЕСТВО</h2><p>Твои купленные вещи появятся здесь.</p>`;
+    }
+}
+
+// Функция для открытия конкретной категории магазина
+function openCategory(cat) {
+    const content = document.getElementById('tab-content');
+    if (cat === 'wheels') {
+        content.innerHTML = `<h3>РУЛЬ И КОЛЁСА</h3><p>Тут будут диски, тонировка и прочее.</p><button onclick="switchTab('shop')">Назад</button>`;
+    } else if (cat === 'clothes') {
+        content.innerHTML = `<h3>ОДЁЖКА</h3><p>Кепки, ветровки, стиль.</p><button onclick="switchTab('shop')">Назад</button>`;
+    } else if (cat === 'tasks') {
+        content.innerHTML = `<h3>ТЕМКИ</h3><p>Тут покупаем доход (бизнес).</p><button onclick="switchTab('shop')">Назад</button>`;
     }
 }
 
@@ -43,19 +54,6 @@ function closeTab() {
     document.getElementById('tab-overlay').style.display = 'none';
 }
 
-function buyBusiness(cost, boost) {
-    if (cash >= cost) {
-        cash -= cost;
-        income += boost;
-        tg.HapticFeedback.notificationOccurred('success');
-        updateUI();
-        closeTab();
-    } else {
-        alert("Недостаточно сум для этой темы.");
-    }
-}
-
-// Пассивный доход (работает только если куплен бизнес)
 setInterval(() => {
     if (income > 0) {
         cash += (income / 10);
@@ -64,4 +62,3 @@ setInterval(() => {
 }, 100);
 
 updateUI();
-
