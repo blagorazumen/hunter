@@ -28,6 +28,7 @@
         }
         #cutscene img.show { opacity: 1; }
 
+        /* Стильные кнопки меню */
         .menu-btn { 
             background: #ff00ff; border: 2px solid #fff; padding: 18px 30px; 
             color: white; font-size: 18px; border-radius: 15px; cursor: pointer; 
@@ -36,6 +37,8 @@
             transition: transform 0.1s;
         }
         .menu-btn:active { transform: scale(0.95); box-shadow: 0 0 5px #ff00ff; }
+        .alt-btn { background: #00ffff; box-shadow: 0 0 15px #00ffff; color: #000; border: 2px solid #000; }
+        .alt-btn:active { box-shadow: 0 0 5px #00ffff; }
     </style>
 </head>
 <body>
@@ -44,6 +47,7 @@
     <div id="menu" class="overlay">
         <h1>КСЮШАЧКА^</h1>
         <button class="menu-btn" onclick="startGame()">🏃 БЕГ К ВРАЧУ</button>
+        <button class="menu-btn alt-btn" onclick="location.href='./pills/index.html'">💊 ЛОВИТЬ ТАБЛЕТКИ</button>
     </div>
 
     <div id="death-screen" class="overlay">
@@ -137,15 +141,12 @@ function draw() {
     let currentBG = score < 20 ? imgs.bg1 : imgs.bg2;
     ctx.drawImage(currentBG, 0, 0, canvas.width, canvas.height);
 
-    if (gameState === 'PLAYING' || gameState === 'WAIT_FINALE' || gameState === 'DEAD') {
+    if (gameState === 'PLAYING' || gameState === 'WAIT_FINALE') {
         if (houseX > -1000) ctx.drawImage(imgs.house, houseX, groundY - 320, 320, 320);
         obstacles.forEach(o => ctx.drawImage(imgs.beer, o.x, o.y, o.w, o.h));
         const cur = player.grounded ? imgs.run[player.frame] : imgs.jump;
         ctx.drawImage(cur, player.x, player.y, player.w, player.h);
     }
-    
-    // Вызываем update здесь для синхронизации с кадрами
-    if (gameState === 'PLAYING') update();
     requestAnimationFrame(draw);
 }
 
@@ -166,7 +167,7 @@ window.addEventListener('touchstart', (e) => {
     } 
 });
 
-// Запускаем через анимационный кадр вместо интервала
+setInterval(update, 1000/60);
 draw();
 </script>
 </body>
