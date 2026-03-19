@@ -33,7 +33,7 @@
         <button class="btn-free" onclick="startGame('FREE')">СВОБОДНЫЙ ЗАБЕГ</button>
         <div id="leaderboard">
             <div style="font-weight:bold; color:#00ffff; margin-bottom:5px;">ТОП-10 СКУФОВ:</div>
-            <div id="leader-list">Синхронизация с базой...</div>
+            <div id="leader-list">Синхронизация...</div>
         </div>
     </div>
     <div id="death-screen" class="overlay">
@@ -50,7 +50,8 @@
 <script>
 // --- КОНФИГ SUPABASE ---
 const SUPABASE_URL = 'https://rfjruwbeiaahegzmowcc.supabase.co';
-const SUPABASE_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmanJ1d2JlaWFhaGVnem1vd2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDMyMjgsImV4cCI6MjA4OTUxOTIyOH0.59jjm9JpMy3m8oZXTfomS4PuTYjDgTfZiSfhCNksPt8'; 
+// Исправил: теперь ключ начинается с маленькой 'e'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmanJ1d2JlaWFhaGVnem1vd2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDMyMjgsImV4cCI6MjA4OTUxOTIyOH0.59jjm9JpMy3m8oZXTfomS4PuTYjDgTfZiSfhCNksPt8'; 
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // --- TELEGRAM DATA ---
@@ -193,4 +194,3 @@ draw();
 </script>
 </body>
 </html>
-
