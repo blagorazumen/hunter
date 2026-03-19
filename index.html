@@ -3,103 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HUNTER • MENU</title>
+    <title>TASHKENT RPG</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --ivory: #fdf5e6; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; color: var(--ivory); font-family: 'Times New Roman', serif; font-style: italic; overflow: hidden; }
         
-        body, html { 
-            margin: 0; padding: 0; width: 100%; height: 100%; 
-            background: #000; color: var(--ivory); 
-            font-family: 'Times New Roman', serif; font-style: italic;
-            overflow: hidden;
-        }
+        .bg-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('bg.jpg') center center / cover no-repeat; filter: grayscale(100%) brightness(0.2); z-index: 1; transition: 1s; }
+        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 10%, black 100%); z-index: 2; }
 
-        /* Твой фон */
-        .bg-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: url('bg.jpg') center center / cover no-repeat;
-            filter: grayscale(100%) brightness(0.2) contrast(1.1);
-            z-index: 1;
-        }
+        .screen { position: relative; z-index: 10; height: 100vh; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 40px; animation: fadeIn 0.4s ease; }
+        .active { display: flex; }
 
-        .vignette {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 30%, black 100%);
-            z-index: 2;
-        }
+        .title-section { text-align: center; margin-bottom: 50px; }
+        h1 { font-size: 32px; letter-spacing: 10px; text-transform: uppercase; margin: 0; opacity: 0.9; }
+        .subtitle { font-size: 12px; letter-spacing: 6px; opacity: 0.5; text-transform: uppercase; display: block; margin-top: 5px; }
 
-        /* Центрированное меню */
-        .menu-layer {
-            position: relative; z-index: 10;
-            height: 100vh; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; padding: 40px;
-        }
+        .btn-list { width: 100%; max-width: 260px; }
+        .menu-btn { background: transparent; border: none; color: var(--ivory); padding: 18px; width: 100%; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 4px; font-size: 12px; cursor: pointer; opacity: 0.6; transition: 0.3s; border-bottom: 0.5px solid transparent; }
+        .menu-btn:active { opacity: 1; border-bottom: 0.5px solid var(--ivory); }
 
-        .title-section { text-align: center; margin-bottom: 60px; }
-        .title-section h1 { 
-            font-size: 28px; letter-spacing: 10px; text-transform: uppercase; 
-            margin: 0; opacity: 0.9; font-weight: 300;
-        }
-        .title-section span { font-size: 10px; letter-spacing: 4px; opacity: 0.4; text-transform: uppercase; }
-
-        .nav-buttons { width: 100%; max-width: 250px; }
-
-        .menu-btn {
-            background: transparent; border: none;
-            color: var(--ivory); padding: 15px; width: 100%;
-            margin-bottom: 10px; text-transform: uppercase;
-            letter-spacing: 4px; font-size: 12px; cursor: pointer;
-            transition: 0.5s; opacity: 0.6;
-            border-bottom: 0.5px solid rgba(253, 245, 230, 0);
-        }
-        
-        /* Эффект при нажатии */
-        .menu-btn:active { opacity: 1; border-bottom: 0.5px solid var(--ivory); transform: scale(1.05); }
-
-        .footer-info { position: absolute; bottom: 20px; font-size: 9px; opacity: 0.3; letter-spacing: 2px; }
+        .footer { position: absolute; bottom: 25px; font-size: 8px; opacity: 0.2; letter-spacing: 3px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div class="bg-overlay"></div>
-    <div class="vignette"></div>
+<div class="bg-overlay"></div>
+<div class="vignette"></div>
 
-    <div class="menu-layer">
-        <div class="title-section">
-            <h1>HUNTER</h1>
-            <span>The Dark Plains of Trilliant</span>
-        </div>
-
-        <div class="nav-buttons">
-            <button class="menu-btn" onclick="startGame()">Начать путь</button>
-            <button class="menu-btn" onclick="showHero()">Персонаж</button>
-            <button class="menu-btn" onclick="tgClose()">Покинуть земли</button>
-        </div>
-
-        <div class="footer-info">ALPHA VERSION • 2026</div>
+<div id="main-menu" class="screen active">
+    <div class="title-section">
+        <h1>TASHKENT</h1>
+        <span class="subtitle">RPG</span>
     </div>
+    <div class="btn-list">
+        <button class="menu-btn" onclick="showScreen('district-menu')">Начать путь</button>
+        <button class="menu-btn" onclick="showStats()">Досье</button>
+        <button class="menu-btn" onclick="tg.close()">Уйти в тень</button>
+    </div>
+    <div class="footer">BUILD: 0.1.2-ALPHA // TEST_MODE</div>
+</div>
 
-    <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.headerColor = '#000000';
+<div id="district-menu" class="screen">
+    <div class="title-section">
+        <h1>РАЙОН</h1>
+        <span class="subtitle">Локация старта</span>
+    </div>
+    <div class="btn-list">
+        <button class="menu-btn" onclick="selectDistrict('Чиланзар')">Чиланзар</button>
+        <button class="menu-btn" onclick="selectDistrict('Юнусабад')">Юнусабад</button>
+        <button class="menu-btn" onclick="selectDistrict('Сергели')">Сергели</button>
+        <button class="menu-btn" onclick="showScreen('main-menu')">Назад</button>
+    </div>
+</div>
 
-        function startGame() {
-            tg.HapticFeedback.impactOccurred('medium');
-            // Позже мы пропишем переход к первой сцене
-            alert("Путь начинается..."); 
+<div id="char-menu" class="screen">
+    <div class="title-section">
+        <h1>КТО ТЫ?</h1>
+        <span class="subtitle">Архетип</span>
+    </div>
+    <div class="btn-list">
+        <button class="menu-btn" onclick="selectChar('Vip')">Vip</button>
+        <button class="menu-btn" onclick="selectChar('Спортик')">Спортик</button>
+        <button class="menu-btn" onclick="selectChar('Альтуха')">Альтуха</button>
+        <button class="menu-btn" onclick="selectChar('Тюбик')">Тюбик</button>
+        <button class="menu-btn" onclick="showScreen('district-menu')">Назад</button>
+    </div>
+</div>
+
+<script>
+    let tg = window.Telegram.WebApp;
+    tg.expand();
+
+    let gameState = { 
+        district: localStorage.getItem('district') || '', 
+        role: localStorage.getItem('role') || '', 
+        cash: parseInt(localStorage.getItem('cash')) || 0 
+    };
+
+    function showScreen(id) {
+        tg.HapticFeedback.impactOccurred('medium');
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function selectDistrict(d) {
+        gameState.district = d;
+        localStorage.setItem('district', d);
+        showScreen('char-menu');
+    }
+
+    function selectChar(role) {
+        gameState.role = role;
+        gameState.cash = 328000; // Единая сумма для всех
+        
+        localStorage.setItem('role', role);
+        localStorage.setItem('cash', gameState.cash);
+        
+        tg.HapticFeedback.notificationOccurred('success');
+        
+        alert(`ПЕРСОНАЖ СОЗДАН.\n\nРоль: ${gameState.role}\nРайон: ${gameState.district}\nБаланс: ${gameState.cash} СУМ`);
+        
+        // Сюда добавим переход к первой игровой сцене
+    }
+
+    function showStats() {
+        if(!gameState.role) {
+            alert("Досье пусто. Начни путь.");
+        } else {
+            alert(`ДОСЬЕ\n\nПерсонаж: ${gameState.role}\nРайон: ${gameState.district}\nБаланс: ${gameState.cash} СУМ`);
         }
+    }
+</script>
 
-        function showHero() {
-            tg.HapticFeedback.selectionChanged();
-            alert("Никита • Уровень 1 • Кинжал Триллианта");
-        }
-
-        function tgClose() {
-            tg.close();
-        }
-    </script>
 </body>
 </html>
