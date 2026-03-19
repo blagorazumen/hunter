@@ -3,38 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TASHKENT: SUETA</title>
-    <link rel="stylesheet" href="style.css?v=5.0">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>WC HUNTER</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body> 
+<body>
     <div class="app">
         <div class="header">
-            <div class="balance"><span id="cash-display">0</span> <small>СУМ</small></div>
-            <div id="income-display" class="income-info">Доход: 0 / сек</div>
+            <div class="balance"><span id="cash-display">0</span> СУМ</div>
+            <div class="income-info" id="income-display">Доход: 0 / сек</div>
         </div>
 
-        <div class="char-container">
-            <div id="character-visual">ФУНДАМЕНТ ЗАЛОЖЕН</div>
-        </div>
+        <div class="char-container">ФУНДАМЕНТ ЗАЛОЖЕН</div>
 
         <div class="click-section">
-            <div class="main-btn" onclick="doSueta()"><span>СУЕТИТЬ</span></div>
+            <button class="main-btn" onclick="doSueta()">СУЕТИТЬ</button>
         </div>
 
-        <nav class="bottom-nav">
+        <div class="bottom-nav">
             <button class="nav-item" onclick="openTab('assets')">ИМУЩЕСТВО</button>
             <button class="nav-item active" onclick="openTab('shop')">МАГАЗИН</button>
-            <button class="nav-item" onclick="openTab('leaderboard')">ЛИДЕРЫ</button>
-        </nav>
+            <button class="nav-item" onclick="openTab('leaderboard')">КОД</button>
+        </div>
     </div>
 
-    <div id="main-overlay" class="overlay" style="display:none;">
-        <button class="close-btn" onclick="closeTab()">✕</button>
+    <div id="main-overlay" class="overlay">
+        <div class="overlay-header">
+            <button class="static-back-btn" onclick="goBack()">← НАЗАД</button>
+            <div class="overlay-balance"><span id="overlay-cash">0</span> СУМ</div>
+        </div>
         <div id="main-content" class="overlay-content"></div>
     </div>
 
-    <script src="database.js?v=5.0"></script>
-    <script src="logic.js?v=5.0"></script>
+    <script src="database.js"></script>
+    <script src="logic.js"></script>
 </body>
 </html>
