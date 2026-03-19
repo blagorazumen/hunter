@@ -7,26 +7,48 @@
     <style>
         body { margin: 0; background: #000; color: white; font-family: 'Courier New', monospace; overflow: hidden; touch-action: manipulation; }
         canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; }
+        
         #ui, #menu, #cutscene { position: absolute; left: 0; width: 100%; height: 100%; text-align: center; z-index: 100; pointer-events: none; }
         #ui { top: 20px; height: auto; font-size: 28px; display: none; color: #ff00ff; text-shadow: 2px 2px #000; }
+        
         #menu { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; background: rgba(0,0,0,0.6); }
         #menu h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 30px; }
-        #cutscene { display: none; background: #000; pointer-events: auto; }
-        #cutscene img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        button { background: #ff00ff; border: none; padding: 20px 60px; color: white; font-size: 24px; border-radius: 12px; cursor: pointer; box-shadow: 0 6px #990099; font-weight: bold; pointer-events: auto; }
+        
+        /* ЦЕНТРИРОВАНИЕ КАРТИНОК ФИНАЛА */
+        #cutscene { 
+            display: none; 
+            background: #000; 
+            pointer-events: auto;
+            display: none; /* Переключается скриптом */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #cutscene img { 
+            max-width: 95%; 
+            max-height: 80%; 
+            object-fit: contain; 
+            border: 2px solid #ff00ff;
+            box-shadow: 0 0 15px #ff00ff;
+        }
+
+        button { background: #ff00ff; border: none; padding: 20px 60px; color: white; font-size: 24px; border-radius: 12px; cursor: pointer; box-shadow: 0 6px #990099; font-weight: bold; pointer-events: auto; margin-top: 20px; }
         button:active { transform: translateY(3px); box-shadow: 0 2px #990099; }
     </style>
 </head>
 <body>
     <div id="ui">SCORE: <span id="score">0</span></div>
+    
     <div id="menu">
         <h1>ALTUSHKA RUN</h1>
         <button id="start-btn">ИГРАТЬ</button>
     </div>
+
     <div id="cutscene">
         <img id="cutscene-img" src="">
-        <div style="position:absolute; bottom:40px; width:100%;"><button id="next-btn">ДАЛЕЕ</button></div>
+        <button id="next-btn">ДАЛЕЕ</button>
     </div>
+
     <canvas id="game"></canvas>
 
 <script>
@@ -49,12 +71,13 @@ const slides = ['end_1.jpg', 'end_2.jpg', 'end_3.jpg', 'end_4.jpg', 'end_5.jpg']
 let currentSlide = 0;
 let gameState = 'MENU';
 let score = 0;
-let gameSpeed = 8; // Быстрее база
+let gameSpeed = 8; // Высокая скорость
 let houseX = -5000;
 
 canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 const groundY = canvas.height - (canvas.height / 3.5);
 
+// Настройки игрока: jf 18 - высокий прыжок
 const player = { x: 50, y: groundY - 110, w: 90, h: 110, dy: 0, jf: 18, g: 0.85, grounded: false, frame: 0, tick: 0 };
 let obstacles = [];
 
@@ -73,7 +96,7 @@ function update() {
     if (score >= 28 && houseX < -1000) houseX = canvas.width;
     if (houseX > -1000) {
         houseX -= gameSpeed;
-        if (player.x + player.w > houseX + 120) { gameState = 'CUT'; startCutscene(); }
+        if (player.x + player.w > houseX + 120) startCutscene();
     }
 
     for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -103,19 +126,37 @@ function draw() {
 }
 
 function startCutscene() {
-    cutsceneDiv.style.display = 'block';
+    gameState = 'CUT';
+    cutsceneDiv.style.display = 'flex'; // Используем flex для центровки
     document.getElementById('ui').style.display = 'none';
     showSlide();
 }
 
 function showSlide() {
-    if (currentSlide < slides.length) cutsceneImg.src = slides[currentSlide];
-    else location.reload();
+    if (currentSlide < slides.length) {
+        cutsceneImg.src = slides[currentSlide];
+    } else {
+        location.reload();
+    }
 }
 
-document.getElementById('start-btn').onclick = () => { gameState = 'PLAYING'; document.getElementById('menu').style.display = 'none'; document.getElementById('ui').style.display = 'block'; };
-document.getElementById('next-btn').onclick = () => { currentSlide++; showSlide(); };
-window.addEventListener('touchstart', (e) => { if (gameState === 'PLAYING' && player.grounded && e.target.tagName !== 'BUTTON') { player.dy = -player.jf; player.grounded = false; } });
+document.getElementById('start-btn').onclick = () => { 
+    gameState = 'PLAYING'; 
+    document.getElementById('menu').style.display = 'none'; 
+    document.getElementById('ui').style.display = 'block'; 
+};
+
+document.getElementById('next-btn').onclick = () => { 
+    currentSlide++; 
+    showSlide(); 
+};
+
+window.addEventListener('touchstart', (e) => { 
+    if (gameState === 'PLAYING' && player.grounded && e.target.tagName !== 'BUTTON') { 
+        player.dy = -player.jf; 
+        player.grounded = false; 
+    } 
+});
 
 setInterval(update, 1000/60);
 draw();
