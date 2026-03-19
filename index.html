@@ -19,7 +19,6 @@
         #death-screen { display: none; }
         #death-msg { color: #00ffff; font-size: 24px; font-weight: bold; margin-bottom: 30px; text-shadow: 2px 2px #ff00ff; }
 
-        /* Таблица лидеров */
         #leaderboard { margin-top: 20px; width: 80%; background: rgba(255, 0, 255, 0.1); border: 1px solid #ff00ff; border-radius: 10px; padding: 10px; font-size: 14px; }
         .leader-item { display: flex; justify-content: space-between; border-bottom: 1px dashed #444; padding: 5px 0; }
 
@@ -70,41 +69,21 @@ const tg = window.Telegram.WebApp;
 tg.expand();
 const playerName = tg.initDataUnsafe?.user?.username || tg.initDataUnsafe?.user?.first_name || "Анонимный Скуф";
 
-// --- ЛОГИКА БАЗЫ (ОБНОВЛЕНО ПОД ТАБЛИЦУ records) ---
+// --- ЛОГИКА БАЗЫ ---
 async function saveScore(s) {
-    console.log("Попытка сохранить счет:", s);
-    const { data, error } = await _supabase
-        .from('records') 
-        .insert([{ username: playerName, score: s }]);
-    
-    if (error) {
-        console.error('Ошибка сохранения:', error.message);
-    } else {
-        console.log('Рекорд успешно записан!');
-        loadLeaderboard();
-    }
+    // ЗАМЕНЕНО НА records
+    await _supabase.from('records').insert([{ username: playerName, score: s }]);
+    loadLeaderboard();
 }
 
 async function loadLeaderboard() {
-    console.log("Загрузка ТОП-10...");
-    const { data, error } = await _supabase
-        .from('records')
-        .select('*')
-        .order('score', { ascending: false })
-        .limit(10);
-
+    // ЗАМЕНЕНО НА records
+    const { data } = await _supabase.from('records').select('*').order('score', { ascending: false }).limit(10);
     const list = document.getElementById('leader-list');
     if (data) {
-        list.innerHTML = data.map((p, i) => 
-            `<div class="leader-item"><span>${i+1}. ${p.username}</span><span>${p.score}</span></div>`
-        ).join('');
-    } else {
-        console.error('Ошибка загрузки ТОПа:', error?.message);
-        list.innerHTML = "Ошибка загрузки данных";
+        list.innerHTML = data.map((p, i) => `<div class="leader-item"><span>${i+1}. ${p.username}</span><span>${p.score}</span></div>`).join('');
     }
 }
-
-// Загружаем список при старте
 loadLeaderboard();
 
 // --- ИГРОВОЙ ДВИЖОК ---
