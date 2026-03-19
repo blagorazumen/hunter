@@ -7,24 +7,32 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; margin: 0; padding: 0; }
 body, html { width: 100%; height: 100%; background: var(--bg); color: var(--ivory); font-family: 'Times New Roman', serif; overflow: hidden; }
 
-.app { height: 100vh; display: flex; flex-direction: column; padding: 20px; }
-.header { text-align: center; padding-top: 20px; }
-.balance { font-size: 32px; letter-spacing: 2px; }
-.income-info { font-size: 11px; opacity: 0.5; text-transform: uppercase; margin-top: 5px; color: var(--gold); }
+.app { height: 100vh; display: flex; flex-direction: column; padding: 10px 20px; }
 
-.char-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; font-size: 14px; letter-spacing: 5px; color: var(--gold); opacity: 0.5; }
+/* ВЕРХНЯЯ ЧАСТЬ: Опустили ниже, чтобы Telegram не перекрывал цифры */
+.header { text-align: center; padding-top: 60px; margin-bottom: 20px; }
+.balance { font-size: 28px; letter-spacing: 2px; }
+.income-info { font-size: 12px; color: var(--gold); margin-top: 5px; opacity: 0.8; }
 
-.click-section { padding-bottom: 100px; display: flex; justify-content: center; }
-.main-btn { width: 160px; height: 160px; border-radius: 50%; border: 1px solid var(--gold); display: flex; align-items: center; justify-content: center; background: rgba(212,175,55,0.05); cursor: pointer; font-size: 16px; letter-spacing: 4px; transition: 0.1s; }
-.main-btn:active { transform: scale(0.95); background: rgba(212,175,55,0.15); }
+.char-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; letter-spacing: 4px; color: var(--gold); opacity: 0.2; }
 
-.bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; padding-bottom: 15px; }
-.nav-item { background: none; border: none; color: var(--ivory); opacity: 0.4; font-size: 10px; letter-spacing: 1px; }
+.click-section { padding-bottom: 120px; display: flex; justify-content: center; }
+.main-btn { width: 170px; height: 170px; border-radius: 50%; border: 1px solid var(--gold); display: flex; align-items: center; justify-content: center; background: rgba(212,175,55,0.05); font-size: 16px; letter-spacing: 4px; }
+
+.bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 90px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #1a1a1a; padding-bottom: 25px; z-index: 50; }
+.nav-item { background: none; border: none; color: var(--ivory); opacity: 0.4; font-size: 11px; letter-spacing: 1px; }
 .nav-item.active { opacity: 1; color: var(--gold); }
 
-.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; display: none; flex-direction: column; align-items: center; padding-top: 60px; overflow-y: auto; }
-.overlay-content { width: 90%; padding-bottom: 40px; }
-.close-btn { position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--ivory); font-size: 24px; }
+/* ОКНО: Добавили больше места сверху */
+.overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 100; display: none; flex-direction: column; align-items: center; padding-top: 90px; overflow-y: auto; }
+.overlay-content { width: 90%; padding-bottom: 120px; }
 
-.shop-menu-btn { width: 100%; background: none; border: 0.5px solid #333; color: var(--ivory); padding: 20px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; }
-.item-card { background: rgba(255,255,255,0.03); border: 1px solid #222; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+/* Кнопка закрытия окна (крестик) */
+.close-btn { position: absolute; top: 30px; right: 25px; background: none; border: none; color: var(--gold); font-size: 30px; z-index: 110; }
+
+.shop-menu-btn { width: 100%; background: rgba(255,255,255,0.02); border: 1px solid #222; color: var(--ivory); padding: 22px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 3px; font-size: 13px; }
+
+.item-card { background: rgba(255,255,255,0.03); border: 1px solid #1a1a1a; padding: 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+
+/* СТИЛЬ КНОПКИ НАЗАД */
+.back-btn { width: 100%; background: none; border: 1px solid var(--gold); color: var(--gold); padding: 15px; margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 12px; }
