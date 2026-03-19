@@ -15,14 +15,10 @@
             <div id="income-display" class="income-info">Доход: 0 / сек</div>
         </div>
         <div class="char-container">
-            <div id="character-visual" class="char-placeholder">
-                <div style="font-size: 10px; opacity: 0.3; letter-spacing: 5px;">[ ПЕРСОНАЖ ]</div>
-            </div>
+            <div id="character-visual" class="char-placeholder">[ ПЕРСОНАЖ ]</div>
         </div>
         <div class="click-section">
-            <div class="main-btn" onclick="doSueta()">
-                <span>СУЕТИТЬ</span>
-            </div>
+            <div class="main-btn" onclick="doSueta()"><span>СУЕТИТЬ</span></div>
         </div>
         <nav class="bottom-nav">
             <button class="nav-item" onclick="switchTab('assets')">ИМУЩЕСТВО</button>
@@ -34,6 +30,8 @@
         <button class="close-overlay" onclick="closeTab()">✕</button>
         <div id="tab-content" class="overlay-content"></div>
     </div>
+
+    <script src="database.js"></script>
     <script src="logic.js"></script>
 </body>
 </html>
