@@ -3,32 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TASHKENT RPG</title>
+    <title>TASHKENT CLICKER</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --ivory: #fdf5e6; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; color: var(--ivory); font-family: 'Times New Roman', serif; font-style: italic; overflow: hidden; }
         
-        .bg-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('bg.jpg') center center / cover no-repeat; filter: grayscale(100%) brightness(0.15) contrast(1.2); z-index: 1; transition: 2s; }
-        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 10%, black 100%); z-index: 2; }
+        .bg-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('bg.jpg') center center / cover no-repeat; filter: grayscale(100%) brightness(0.1); z-index: 1; }
+        .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 20%, black 100%); z-index: 2; }
 
-        .screen { position: relative; z-index: 10; height: 100vh; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 30px; animation: fadeIn 0.8s ease; }
-        .active { display: flex; }
+        .app { position: relative; z-index: 10; height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
 
-        .title-section { text-align: center; margin-bottom: 50px; }
-        h1 { font-size: 34px; letter-spacing: 12px; text-transform: uppercase; margin: 0; opacity: 0.9; font-weight: 300; }
-        .subtitle { font-size: 14px; letter-spacing: 8px; opacity: 0.5; text-transform: uppercase; display: block; margin-top: 5px; }
+        /* Хедер с балансом */
+        .header { text-align: center; margin-top: 20px; }
+        .balance { font-size: 36px; letter-spacing: 2px; font-weight: 300; }
+        .currency { font-size: 14px; opacity: 0.5; letter-spacing: 5px; }
 
-        .btn-list { width: 100%; max-width: 280px; }
-        .menu-btn { background: transparent; border: none; color: var(--ivory); padding: 20px; width: 100%; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 4px; font-size: 11px; cursor: pointer; opacity: 0.6; transition: 0.4s; border-bottom: 0.5px solid transparent; }
-        .menu-btn:active { opacity: 1; border-bottom: 0.5px solid var(--ivory); letter-spacing: 6px; }
+        /* Центр: Кнопка клика */
+        .click-area { flex-grow: 1; display: flex; justify-content: center; align-items: center; width: 100%; }
+        .main-btn { 
+            width: 200px; height: 200px; border-radius: 50%; 
+            border: 1px solid rgba(253, 245, 230, 0.2);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 18px; letter-spacing: 5px; text-transform: uppercase;
+            transition: 0.1s; cursor: pointer; backdrop-filter: blur(5px);
+        }
+        .main-btn:active { transform: scale(0.95); background: rgba(253, 245, 230, 0.1); }
 
-        /* Стили для текста лора */
-        .story-text { font-size: 19px; line-height: 1.7; text-align: center; margin-bottom: 50px; opacity: 0.9; max-width: 320px; min-height: 150px; display: flex; align-items: center; justify-content: center; }
+        /* Магазин */
+        .shop { width: 100%; max-width: 320px; margin-bottom: 40px; }
+        .shop-title { font-size: 10px; letter-spacing: 3px; opacity: 0.4; text-transform: uppercase; margin-bottom: 15px; text-align: center; }
+        
+        .upgrade-card { 
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px; border-bottom: 0.5px solid rgba(253, 245, 230, 0.1);
+            font-size: 12px; letter-spacing: 1px;
+        }
+        .upgrade-card.locked { opacity: 0.3; }
+        .buy-btn { color: var(--ivory); background: none; border: 0.5px solid var(--ivory); padding: 5px 10px; font-size: 10px; cursor: pointer; }
 
-        .footer { position: absolute; bottom: 25px; font-size: 8px; opacity: 0.2; letter-spacing: 3px; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .footer { font-size: 8px; opacity: 0.2; letter-spacing: 2px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -36,154 +51,78 @@
 <div class="bg-overlay"></div>
 <div class="vignette"></div>
 
-<div id="main-menu" class="screen active">
-    <div class="title-section">
-        <h1>TASHKENT</h1>
-        <span class="subtitle">RPG</span>
+<div class="app">
+    <div class="header">
+        <div class="balance" id="cash-display">328 000</div>
+        <div class="currency">СУМ</div>
     </div>
-    <div class="btn-list">
-        <button class="menu-btn" onclick="showScreen('district-menu')">Начать путь</button>
-        <button class="menu-btn" onclick="showStats()">Досье</button>
-        <button class="menu-btn" onclick="tg.close()">Уйти в тень</button>
-    </div>
-    <div class="footer">BUILD: 0.1.2-ALPHA // TEST_MODE</div>
-</div>
 
-<div id="district-menu" class="screen">
-    <div class="title-section"><h1>РАЙОН</h1></div>
-    <div class="btn-list">
-        <button class="menu-btn" onclick="selectDistrict('Чиланзар')">Чиланзар</button>
-        <button class="menu-btn" onclick="selectDistrict('Юнусабад')">Юнусабад</button>
-        <button class="menu-btn" onclick="selectDistrict('Сергели')">Сергели</button>
-        <button class="menu-btn" onclick="showScreen('main-menu')">Назад</button>
+    <div class="click-area">
+        <div class="main-btn" onclick="doClick()">Суета</div>
     </div>
-</div>
 
-<div id="char-menu" class="screen">
-    <div class="title-section"><h1>КТО ТЫ?</h1></div>
-    <div class="btn-list">
-        <button class="menu-btn" onclick="selectChar('Vip')">Vip</button>
-        <button class="menu-btn" onclick="selectChar('Спортик')">Спортик</button>
-        <button class="menu-btn" onclick="selectChar('Альтуха')">Альтуха</button>
-        <button class="menu-btn" onclick="selectChar('Тюбик')">Тюбик</button>
+    <div class="shop">
+        <div class="shop-title">Развитие бизнеса</div>
+        
+        <div class="upgrade-card">
+            <div>
+                <span>Знакомый на заправке</span><br>
+                <small style="opacity:0.5">+500 сум/сек</small>
+            </div>
+            <button class="buy-btn" onclick="buyUpgrade(50000, 500)">100к</button>
+        </div>
+
+        <div class="upgrade-card">
+            <div>
+                <span>Точка на Абу-Сахий</span><br>
+                <small style="opacity:0.5">+5000 сум/сек</small>
+            </div>
+            <button class="buy-btn" onclick="buyUpgrade(250000, 5000)">500к</button>
+        </div>
     </div>
-</div>
 
-<div id="game-screen" class="screen">
-    <div id="story-display" class="story-text"></div>
-    <div id="choice-list" class="btn-list"></div>
+    <div class="footer">BUILD: 0.1.5-CLICKER // TEST_MODE</div>
 </div>
 
 <script>
     let tg = window.Telegram.WebApp;
     tg.expand();
-    tg.headerColor = '#000000';
 
-    let state = {
-        district: '',
-        role: '',
-        cash: 328000
-    };
+    // Состояние игры
+    let cash = 328000;
+    let incomePerSecond = 0;
+    let clickPower = 100;
 
-    function showScreen(id) {
-        tg.HapticFeedback.impactOccurred('medium');
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
+    function updateDisplay() {
+        document.getElementById('cash-display').innerText = Math.floor(cash).toLocaleString('ru-RU');
     }
 
-    function selectDistrict(d) {
-        state.district = d;
-        showScreen('char-menu');
+    function doClick() {
+        cash += clickPower;
+        tg.HapticFeedback.impactOccurred('light');
+        updateDisplay();
     }
 
-    function selectChar(r) {
-        state.role = r;
-        if(r === 'Vip') { startVipIntro(); }
-        else { alert("Сценарий в разработке..."); }
-    }
-
-    // --- ЛОР СИСТЕМА ---
-
-    function updateGame(text, choices) {
-        const display = document.getElementById('story-display');
-        const list = document.getElementById('choice-list');
-        
-        display.style.opacity = 0;
-        setTimeout(() => {
-            display.innerHTML = text;
-            display.style.opacity = 1;
-        }, 300);
-
-        list.innerHTML = '';
-        choices.forEach(c => {
-            const b = document.createElement('button');
-            b.className = 'menu-btn';
-            b.innerHTML = c.text;
-            b.onclick = () => {
-                tg.HapticFeedback.impactOccurred('light');
-                c.callback();
-            };
-            list.appendChild(b);
-        });
-    }
-
-    function startVipIntro() {
-        showScreen('game-screen');
-        updateGame(
-            "Ночные катания до добра не доводят...",
-            [{ text: "Открыть глаза", callback: vipStep1 }]
-        );
-    }
-
-    function vipStep1() {
-        updateGame(
-            "В глазах блики, в ушах звон. Пахнет бензином и гарью.",
-            [{ text: "Оглянуться", callback: vipStep2 }]
-        );
-    }
-
-    function vipStep2() {
-        updateGame(
-            "Ты в разбитом авто. Снаружи кричат люди. Дверь заклинило.",
-            [
-                { text: "Продолжить лежать", callback: vipEndStay },
-                { text: "Выйти наружу", callback: vipEndExit }
-            ]
-        );
-    }
-
-    function vipEndStay() {
-        updateGame(
-            "Тебя вытаскивают чужие руки. Ты лежишь на асфальте. Из кармана выпадают деньги. У тебя осталось 328 000 сум.",
-            [{ text: "Прийти в себя", callback: () => showScreen('main-menu') }]
-        );
-    }
-
-    function vipEndExit() {
-        updateGame(
-            "Ты вываливаешься на землю. Твоя тачка догорает. В кулаке зажаты последние 328 000 сум.",
-            [{ text: "Осмотреться", callback: () => showScreen('main-menu') }]
-        );
-    }
-
-    function showStats() {
-        if(!state.role) alert("Досье пусто.");
-        else alert(`ДОСЬЕ\n\nГерой: ${state.role}\nРайон: ${state.district}\nНал: ${state.cash} СУМ`);
-    }
-
-</script>
-
-</body>
-</html>
-    }
-
-    function showStats() {
-        if(!gameState.role) {
-            alert("Досье пусто. Начни путь.");
+    function buyUpgrade(cost, income) {
+        if (cash >= cost) {
+            cash -= cost;
+            incomePerSecond += income;
+            tg.HapticFeedback.notificationOccurred('success');
+            updateDisplay();
         } else {
-            alert(`ДОСЬЕ\n\nПерсонаж: ${gameState.role}\nРайон: ${gameState.district}\nБаланс: ${gameState.cash} СУМ`);
+            tg.HapticFeedback.notificationOccurred('error');
         }
     }
+
+    // Цикл пассивного дохода
+    setInterval(() => {
+        if (incomePerSecond > 0) {
+            cash += incomePerSecond / 10; // Добавляем каждые 100мс для плавности
+            updateDisplay();
+        }
+    }, 100);
+
+    updateDisplay();
 </script>
 
 </body>
