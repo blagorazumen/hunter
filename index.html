@@ -4,34 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TASHKENT: SUETA</title>
-    <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --ivory: #fdf5e6; --gold: #d4af37; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; color: var(--ivory); font-family: serif; overflow: hidden; }
+        .app { position: relative; height: 100vh; display: flex; flex-direction: column; padding: 20px; z-index: 5; }
+        .header { text-align: center; padding-top: 20px; }
+        .balance { font-size: 32px; letter-spacing: 2px; }
+        .income-info { font-size: 10px; opacity: 0.5; text-transform: uppercase; }
+        .char-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+        .click-section { padding-bottom: 100px; display: flex; justify-content: center; }
+        .main-btn { width: 160px; height: 160px; border-radius: 50%; border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; background: rgba(212, 175, 55, 0.1); cursor: pointer; transition: 0.1s; font-weight: bold; }
+        .main-btn:active { transform: scale(0.9); }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: #111; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #333; }
+        .nav-item { background: none; border: none; color: var(--ivory); opacity: 0.5; font-size: 10px; }
+        .nav-item.active { opacity: 1; color: var(--gold); }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; display: none; flex-direction: column; padding: 40px 20px; text-align: center; }
+        .shop-btn { width: 100%; padding: 15px; margin: 10px 0; background: none; border: 1px solid var(--ivory); color: var(--ivory); text-transform: uppercase; }
+    </style>
 </head>
-<body class="character-vip"> 
-    <div class="vignette"></div>
+<body>
     <div class="app">
         <div class="header">
             <div class="balance"><span id="cash-display">328 000</span> <small>СУМ</small></div>
             <div id="income-display" class="income-info">Доход: 0 / сек</div>
         </div>
         <div class="char-container">
-            <div id="character-visual" class="char-placeholder">[ ПЕРСОНАЖ ]</div>
+            <div id="char-box" style="color:var(--gold); font-size: 20px; letter-spacing: 5px;">[ ПЕРСОНАЖ ]</div>
         </div>
         <div class="click-section">
-            <div class="main-btn" onclick="doSueta()"><span>СУЕТИТЬ</span></div>
+            <div class="main-btn" onclick="doSueta()">СУЕТИТЬ</div>
         </div>
         <nav class="bottom-nav">
-            <button class="nav-item" onclick="switchTab('assets')">ИМУЩЕСТВО</button>
-            <button class="nav-item active" onclick="switchTab('shop')">МАГАЗИН</button>
-            <button class="nav-item" onclick="switchTab('leaderboard')">ЛИДЕРЫ</button>
+            <button class="nav-item" onclick="openTab('shop')">МАГАЗИН</button>
+            <button class="nav-item" onclick="openTab('tasks')">ТЕМКИ</button>
+            <button class="nav-item" onclick="closeTab()">ГЛАВНАЯ</button>
         </nav>
     </div>
-    <div id="tab-overlay" class="overlay">
-        <button class="close-overlay" onclick="closeTab()">✕</button>
-        <div id="tab-content" class="overlay-content"></div>
+
+    <div id="overlay" class="overlay">
+        <div id="content"></div>
+        <button onclick="closeTab()" style="margin-top: 30px; color: var(--gold); background: none; border: none;">ЗАКРЫТЬ</button>
     </div>
 
-    <script src="database.js"></script>
-    <script src="logic.js"></script>
+    <script>
+        let cash = 328000;
+        let income = 0;
+        let clickValue = 100;
+
+        function updateUI() {
+            document.getElementById('cash-display').innerText = Math.floor(cash).toLocaleString('ru-RU');
+            document.getElementById('income-display').innerText = "Доход: " + Math.floor(income) + " / сек";
+        }
+
+        function doSueta() {
+            cash += clickValue;
+            updateUI();
+        }
+
+        function openTab(type) {
+            const ov = document.getElementById('overlay');
+            const ct = document.getElementById('content');
+            ov.style.display = 'flex';
+            if(type === 'shop') {
+                ct.innerHTML = '<h2>МАГАЗИН</h2><button class="shop-btn">РУЛЬ И КОЛЁСА</button><button class="shop-btn">ОДЁЖКА</button>';
+            } else if(type === 'tasks') {
+                ct.innerHTML = '<h2>ТЕМКИ</h2><p>Тут будут районы Ташкента...</p>';
+            }
+        }
+
+        function closeTab() {
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        updateUI();
+    </script>
 </body>
 </html>
