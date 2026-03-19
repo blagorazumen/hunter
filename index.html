@@ -9,17 +9,24 @@
     <style>
         body { margin: 0; background: #000; color: white; font-family: 'Courier New', monospace; overflow: hidden; touch-action: manipulation; }
         canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; transition: filter 3s ease; }
+        
         #ui, #menu, #cutscene, #death-screen { position: absolute; left: 0; width: 100%; height: 100%; text-align: center; z-index: 100; pointer-events: none; }
         #ui { top: 20px; height: auto; font-size: 28px; display: none; color: #ff00ff; text-shadow: 2px 2px #000; }
+        
         .overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; background: rgba(0,0,0,0.8); overflow-y: auto; }
         h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 20px; }
+        
         #death-screen { display: none; }
         #death-msg { color: #00ffff; font-size: 24px; font-weight: bold; margin-bottom: 30px; text-shadow: 2px 2px #ff00ff; }
+
+        /* Таблица лидеров */
         #leaderboard { margin-top: 20px; width: 80%; background: rgba(255, 0, 255, 0.1); border: 1px solid #ff00ff; border-radius: 10px; padding: 10px; font-size: 14px; }
         .leader-item { display: flex; justify-content: space-between; border-bottom: 1px dashed #444; padding: 5px 0; }
+
         #cutscene { display: none; background: #000; pointer-events: auto; position: fixed; top: 0; left: 0; width: 100%; height: 100%; flex-direction: column; justify-content: center; align-items: center; }
         #cutscene img { max-width: 100%; max-height: 80vh; opacity: 0; transition: opacity 1s ease-in-out; border: 2px solid #ff00ff; }
         #cutscene img.show { opacity: 1; }
+
         button { background: #ff00ff; border: none; padding: 15px 40px; color: white; font-size: 18px; border-radius: 12px; cursor: pointer; box-shadow: 0 6px #990099; font-weight: bold; pointer-events: auto; margin: 10px; width: 250px;}
         button:active { transform: translateY(3px); box-shadow: 0 2px #990099; }
         .btn-free { background: #00ffff; box-shadow: 0 6px #009999; color: #000; }
@@ -27,24 +34,29 @@
 </head>
 <body>
     <div id="ui">SCORE: <span id="score">0</span></div>
+    
     <div id="menu" class="overlay">
         <h1>КСЮШАЧКА^</h1>
         <button onclick="startGame('STORY')">СЮЖЕТ</button>
         <button class="btn-free" onclick="startGame('FREE')">СВОБОДНЫЙ ЗАБЕГ</button>
+        
         <div id="leaderboard">
             <div style="font-weight:bold; color:#00ffff; margin-bottom:5px;">ТОП-10 СКУФОВ:</div>
             <div id="leader-list">Загрузка рекордов...</div>
         </div>
     </div>
+
     <div id="death-screen" class="overlay">
         <h1>ППЦ;)</h1>
         <div id="death-msg"></div>
         <button onclick="location.reload()">В МЕНЮ</button>
     </div>
+
     <div id="cutscene">
         <img id="cutscene-img" src="" alt="Финал">
         <button id="next-btn" style="margin-top:20px;">ДАЛЕЕ</button>
     </div>
+
     <canvas id="game"></canvas>
 
 <script>
@@ -58,15 +70,13 @@ const tg = window.Telegram.WebApp;
 tg.expand();
 const playerName = tg.initDataUnsafe?.user?.username || tg.initDataUnsafe?.user?.first_name || "Анонимный Скуф";
 
-// --- ЛОГИКА БАЗЫ (ТУТ ИСПРАВЛЕНО НА records) ---
+// --- ЛОГИКА БАЗЫ ---
 async function saveScore(s) {
-    // ВНИМАНИЕ: Тут была ошибка, теперь точно 'records'
     await _supabase.from('records').insert([{ username: playerName, score: s }]);
     loadLeaderboard();
 }
 
 async function loadLeaderboard() {
-    // ВНИМАНИЕ: И тут теперь точно 'records'
     const { data } = await _supabase.from('records').select('*').order('score', { ascending: false }).limit(10);
     const list = document.getElementById('leader-list');
     if (data) {
@@ -108,10 +118,13 @@ function startGame(mode) {
 
 function update() {
     if (gameState !== 'PLAYING') return;
+
     player.dy += player.g; player.y += player.dy;
     if (player.y + player.h > groundY) { player.y = groundY - player.h; player.dy = 0; player.grounded = true; }
     if (player.grounded) { player.tick++; if (player.tick % 7 === 0) player.frame = (player.frame + 1) % 3; }
+
     if (gameMode === 'STORY' && score >= 28 && houseX < -1000) houseX = canvas.width;
+    
     if (houseX > -1000) {
         houseX -= gameSpeed;
         if (player.x + player.w > houseX + 100) {
@@ -120,6 +133,7 @@ function update() {
             setTimeout(startCutscene, 3000);
         }
     }
+
     for (let i = obstacles.length - 1; i >= 0; i--) {
         obstacles[i].x -= gameSpeed;
         let o = obstacles[i];
@@ -131,11 +145,13 @@ function update() {
         }
         if (o.x + o.w < 0) { obstacles.splice(i, 1); score++; document.getElementById('score').innerText = score; }
     }
+
     let spawnChance = gameMode === 'FREE' ? 0.04 + (score * 0.0005) : 0.04; 
     if ((gameMode === 'FREE' || score < 28) && Math.random() < spawnChance && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 300)) {
         obstacles.push({ x: canvas.width, y: groundY - 75, w: 45, h: 75 });
     }
 }
+
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(imgs.bg, 0, 0, canvas.width, canvas.height);
@@ -147,12 +163,14 @@ function draw() {
     }
     requestAnimationFrame(draw);
 }
+
 function startCutscene() {
     gameState = 'CUT';
     cutsceneDiv.style.display = 'flex';
     document.getElementById('ui').style.display = 'none';
     showSlide();
 }
+
 function showSlide() {
     if (currentSlide < slides.length) {
         cutsceneImg.classList.remove('show');
@@ -162,12 +180,14 @@ function showSlide() {
         }, 100);
     } else location.reload();
 }
+
 document.getElementById('next-btn').onclick = () => { currentSlide++; showSlide(); };
 window.addEventListener('touchstart', (e) => { 
     if (gameState === 'PLAYING' && player.grounded && e.target.tagName !== 'BUTTON') { 
         player.dy = -player.jf; player.grounded = false; 
     } 
 });
+
 setInterval(update, 1000/60);
 draw();
 </script>
