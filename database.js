@@ -1,22 +1,30 @@
 const DB = {
+    // Районы Ташкента с их множителями цены и дохода
     districts: {
-        "S": { name: "City (Mirabad)", mult: 10, priceMult: 10 },
-        "A": { name: "Yakkasaray/M.Ulugbek", mult: 5, priceMult: 5 },
-        "B": { name: "Chilanzar/Yunusabad", mult: 2, priceMult: 2 },
-        "C": { name: "Yashnabad/Almazar", mult: 1, priceMult: 1 },
-        "D": { name: "Sergeli/Bektemir", mult: 0.5, priceMult: 0.5 }
+        city: { name: "CITY (MIRABAD)", priceMult: 5, mult: 5 },
+        yakka: { name: "YAKKASARAY/M.ULUGBEK", priceMult: 2.5, mult: 2.5 },
+        chil: { name: "CHILANZAR/YUNUSABAD", priceMult: 1, mult: 1 },
+        yash: { name: "YASHNABAD/ALMAZAR", priceMult: 0.5, mult: 0.5 },
+        sergeli: { name: "SERGELI/BEKTEMIR", priceMult: 0.25, mult: 0.25 }
     },
+
+    // Твои бизнес-активы (Темки)
     items: {
         tasks: [
             {
-                id: "cig",
                 name: "Точка штучных сигарет",
-                basePrice: 50000, // Базовая цена (для района C)
-                income: 16.6,
-                owned: { "S": 0, "A": 0, "B": 0, "C": 0, "D": 0 }
+                basePrice: 50000, // Базовая цена для расчетов
+                income: 33,      // Базовый доход в секунду
+                owned: {
+                    city: 0,
+                    yakka: 0,
+                    chil: 0,
+                    yash: 0,
+                    sergeli: 0
+                }
             }
         ],
-        clothes: [],
-        wheels: []
+        clothes: [], // Задел на будущее
+        wheels: []   // Задел на будущее
     }
 };
