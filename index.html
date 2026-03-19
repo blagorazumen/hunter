@@ -6,19 +6,41 @@
     <title>Altushka Run: Tashkent Underground</title>
     <style>
         body { margin: 0; background: #1a1a1a; color: white; font-family: 'Courier New', Courier, monospace; overflow: hidden; touch-action: manipulation; }
-        canvas { display: block; background: #000; }
-        #ui, #msg, #menu { position: absolute; left: 0; width: 100%; text-align: center; z-index: 10; }
+        canvas { display: block; background: #000; position: fixed; top: 0; left: 0; z-index: 1; }
+        
+        #ui, #msg, #menu { 
+            position: absolute; 
+            left: 0; 
+            width: 100%; 
+            text-align: center; 
+            z-index: 100; /* Поднимаем интерфейс над игрой */
+            pointer-events: none; /* Пропускаем нажатия сквозь пустые места */
+        }
+
         #ui { top: 20px; font-size: 24px; text-shadow: 2px 2px #000; display: none; color: #ff00ff; }
         
-        #menu { top: 50%; transform: translateY(-50%); }
-        #menu h1 { color: #ff00ff; font-size: 42px; margin-bottom: 5px; text-shadow: 3px 3px #000; }
+        #menu { top: 50%; transform: translateY(-50%); display: block; pointer-events: auto; }
+        #menu h1 { color: #ff00ff; font-size: 38px; margin-bottom: 5px; text-shadow: 3px 3px #000; }
         #best { font-size: 18px; margin-bottom: 30px; color: #00ff00; }
         
-        #msg { top: 40%; transform: translateY(-50%); display: none; background: rgba(0,0,0,0.8); padding: 20px 0; }
-        #msg h1 { color: #ff0000; font-size: 40px; text-shadow: 2px 2px #000; margin-bottom: 10px; }
-        #death-text { font-size: 18px; margin-bottom: 25px; padding: 0 10px; color: #ccc; }
+        #msg { top: 40%; transform: translateY(-50%); display: none; background: rgba(0,0,0,0.85); padding: 30px 0; pointer-events: auto; }
+        #msg h1 { color: #ff0000; font-size: 36px; text-shadow: 2px 2px #000; margin-bottom: 10px; }
+        #death-text { font-size: 18px; margin-bottom: 25px; padding: 0 15px; color: #ccc; }
         
-        button { background: #ff00ff; border: none; padding: 15px 45px; color: white; font-size: 20px; border-radius: 8px; cursor: pointer; box-shadow: 0 5px #990099; text-transform: uppercase; font-weight: bold; }
+        button { 
+            background: #ff00ff; 
+            border: none; 
+            padding: 18px 50px; 
+            color: white; 
+            font-size: 22px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            box-shadow: 0 6px #990099; 
+            text-transform: uppercase; 
+            font-weight: bold;
+            pointer-events: auto; /* Кнопка должна ловить нажатия */
+            -webkit-tap-highlight-color: transparent;
+        }
         button:active { transform: translateY(3px); box-shadow: 0 2px #990099; }
     </style>
 </head>
@@ -28,13 +50,13 @@
     <div id="menu">
         <h1>ALTUSHKA RUN</h1>
         <div id="best">BEST: 0</div>
-        <button onclick="startGame()">ИГРАТЬ</button>
+        <button id="start-btn">ИГРАТЬ</button>
     </div>
 
     <div id="msg">
         <h1>ПОТРАЧЕНО</h1>
-        <div id="death-text">Бутылка оказалась сильнее...</div>
-        <button onclick="resetGame()">ЕЩЕ РАЗ</button>
+        <div id="death-text">Кибрай оказался сильнее...</div>
+        <button id="retry-btn">ЕЩЕ РАЗ</button>
     </div>
 
     <canvas id="game"></canvas>
@@ -46,7 +68,6 @@ const scoreElement = document.getElementById('score');
 const bestElement = document.getElementById('best');
 const deathText = document.getElementById('death-text');
 
-// Список смешных концовок
 const phrases = [
     "Кибрай оказался сильнее...",
     "Альтушка ушла в андеграунд окончательно",
@@ -55,7 +76,6 @@ const phrases = [
     "Минус кеды, плюс грусть",
     "Слишком много Чилланзара для одной прогулки",
     "Телебашня смотрит на тебя с осуждением",
-    "В следующий раз перепрыгнешь (нет)",
     "Бутылка: 1, Альтушка: 0"
 ];
 
@@ -64,7 +84,6 @@ const imgs = {
     run: [new Image(), new Image(), new Image()]
 };
 
-// Загрузка ресурсов
 imgs.bg.src = 'bg.png';
 imgs.beer.src = 'beer.png';
 imgs.jump.src = 'jump.png';
@@ -93,17 +112,15 @@ const player = {
 let obstacles = [];
 
 function spawnObstacle() {
-    obstacles.push({ x: canvas.width, y: groundY - 65, w: 35, h: 65 });
+    obstacles.push({ x: canvas.width, y: groundY - 70, w: 40, h: 70 });
 }
 
 function update() {
     if (gameState !== 'PLAYING') return;
 
-    // Параллакс фона
-    bgX -= 1.5;
+    bgX -= 1.8;
     if (bgX <= -canvas.width) bgX = 0;
 
-    // Физика игрока
     player.dy += player.gravity;
     player.y += player.dy;
     
@@ -113,25 +130,22 @@ function update() {
         player.grounded = true;
     }
 
-    // Анимация бега
     if (player.grounded) {
         player.animTick++;
         if (player.animTick % 7 === 0) player.frame = (player.frame + 1) % 3;
     }
 
-    // Препятствия
     for (let i = obstacles.length - 1; i >= 0; i--) {
         obstacles[i].x -= gameSpeed;
         
-        // Хитбокс (чуть сужен для комфортной игры)
-        if (player.x + 20 < obstacles[i].x + obstacles[i].w &&
-            player.x + player.w - 20 > obstacles[i].x &&
+        if (player.x + 25 < obstacles[i].x + obstacles[i].w &&
+            player.x + player.w - 25 > obstacles[i].x &&
             player.y + 15 < obstacles[i].y + obstacles[i].h &&
             player.y + player.h > obstacles[i].y) {
             gameOver();
         }
 
-        if (obstacles[i].x + obstacles[i].w < 0) {
+        if (obstacles[i].x + obstacles[i].width < 0) {
             obstacles.splice(i, 1);
             score++;
             scoreElement.innerText = score;
@@ -146,22 +160,13 @@ function update() {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Отрисовка зацикленного фона
     ctx.drawImage(imgs.bg, bgX, 0, canvas.width, canvas.height);
     ctx.drawImage(imgs.bg, bgX + canvas.width, 0, canvas.width, canvas.height);
 
     if (gameState === 'PLAYING' || gameState === 'GAMEOVER') {
-        // Игрок (спрайт меняется при прыжке)
         const currentImg = player.grounded ? imgs.run[player.frame] : imgs.jump;
-        if (currentImg.complete) {
-            ctx.drawImage(currentImg, player.x, player.y, player.w, player.h);
-        }
-
-        // Бутылки Кибрая
-        if (imgs.beer.complete) {
-            obstacles.forEach(o => ctx.drawImage(imgs.beer, o.x, o.y, o.w, o.h));
-        }
+        ctx.drawImage(currentImg, player.x, player.y, player.w, player.h);
+        obstacles.forEach(o => ctx.drawImage(imgs.beer, o.x, o.y, o.w, o.h));
     }
 }
 
@@ -180,7 +185,6 @@ function startGame() {
 function gameOver() {
     gameState = 'GAMEOVER';
     document.getElementById('msg').style.display = 'block';
-    // Выбираем случайную фразу
     deathText.innerText = phrases[Math.floor(Math.random() * phrases.length)];
     
     if (score > bestScore) {
@@ -196,32 +200,25 @@ function resetGame() {
     player.y = groundY - 110;
     gameState = 'PLAYING';
     document.getElementById('msg').style.display = 'none';
+    document.getElementById('ui').style.display = 'block';
 }
 
-// Управление тапом
+// Привязываем кнопки жестко
+document.getElementById('start-btn').onclick = (e) => { e.stopPropagation(); startGame(); };
+document.getElementById('retry-btn').onclick = (e) => { e.stopPropagation(); resetGame(); };
+
+// Управление тапом по канвасу (прыжок)
 window.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    if (gameState === 'PLAYING' && player.grounded) {
-        player.dy = -player.jumpForce;
-        player.grounded = false;
+    if (gameState === 'PLAYING') {
+        if (player.grounded) {
+            player.dy = -player.jumpForce;
+            player.grounded = false;
+        }
     }
 }, { passive: false });
 
-// Поддержка пробела для ПК
-window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space') {
-        if (gameState === 'PLAYING') {
-            if (player.grounded) {
-                player.dy = -player.jumpForce;
-                player.grounded = false;
-            }
-        } else if (gameState === 'MENU') startGame();
-        else if (gameState === 'GAMEOVER') resetGame();
-    }
-});
-
-// Запуск после загрузки фона
-imgs.bg.onload = () => loop();
+loop();
 </script>
 </body>
 </html>
+
