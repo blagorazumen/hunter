@@ -7,17 +7,35 @@
     <style>
         body { margin: 0; background: #000; color: white; font-family: 'Courier New', monospace; overflow: hidden; touch-action: manipulation; }
         canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; transition: filter 3s ease; }
-        #ui, .overlay, #cutscene { position: absolute; left: 0; top: 0; width: 100%; height: 100%; text-align: center; z-index: 100; pointer-events: none; }
-        #ui { top: 20px; height: auto; font-size: 28px; display: none; color: #ff00ff; text-shadow: 2px 2px #000; pointer-events: none; }
-        .overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; background: rgba(0,0,0,0.8); }
-        h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 20px; }
+        
+        #ui, #menu, #cutscene, #death-screen { position: absolute; left: 0; width: 100%; height: 100%; text-align: center; z-index: 100; pointer-events: none; }
+        #ui { top: 20px; height: auto; font-size: 28px; display: none; color: #ff00ff; text-shadow: 2px 2px #000; }
+        
+        .overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; background: rgba(0,0,0,0.85); }
+        h1 { color: #ff00ff; font-size: 48px; text-shadow: 4px 4px #000; margin-bottom: 40px; letter-spacing: 3px; }
+        
         #death-screen { display: none; }
         #death-msg { color: #00ffff; font-size: 24px; font-weight: bold; margin-bottom: 30px; text-shadow: 2px 2px #ff00ff; }
-        #cutscene { display: none; background: #000; pointer-events: auto; flex-direction: column; justify-content: center; align-items: center; }
-        #cutscene img { max-width: 90%; max-height: 70vh; object-fit: contain; opacity: 0; transition: opacity 0.5s; border: 2px solid #ff00ff; }
+
+        #cutscene { 
+            display: none; background: #000; pointer-events: auto;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            flex-direction: column; justify-content: center; align-items: center;
+        }
+        #cutscene img { 
+            max-width: 100%; max-height: 80vh; object-fit: contain;
+            opacity: 0; transition: opacity 1s ease-in-out; border: 2px solid #ff00ff;
+        }
         #cutscene img.show { opacity: 1; }
-        button { background: #ff00ff; border: none; padding: 15px 50px; color: white; font-size: 22px; border-radius: 12px; cursor: pointer; box-shadow: 0 6px #990099; font-weight: bold; pointer-events: auto; outline: none; }
-        button:active { transform: translateY(4px); box-shadow: 0 2px #990099; }
+
+        .menu-btn { 
+            background: #ff00ff; border: 2px solid #fff; padding: 18px 30px; 
+            color: white; font-size: 18px; border-radius: 15px; cursor: pointer; 
+            box-shadow: 0 0 15px #ff00ff; font-weight: bold; pointer-events: auto; 
+            margin: 10px; width: 280px; text-transform: uppercase;
+            transition: transform 0.1s;
+        }
+        .menu-btn:active { transform: scale(0.95); box-shadow: 0 0 5px #ff00ff; }
     </style>
 </head>
 <body>
@@ -25,18 +43,18 @@
     
     <div id="menu" class="overlay">
         <h1>КСЮШАЧКА^</h1>
-        <button onclick="startGame()">ИГРАТЬ</button>
+        <button class="menu-btn" onclick="startGame()">🏃 БЕГ К ВРАЧУ</button>
     </div>
 
     <div id="death-screen" class="overlay">
         <h1>ППЦ;)</h1>
         <div id="death-msg"></div>
-        <button onclick="location.reload()">ЕЩЁ РАЗ</button>
+        <button class="menu-btn" onclick="location.reload()">ЕЩЁ РАЗ</button>
     </div>
 
     <div id="cutscene">
         <img id="cutscene-img" src="">
-        <button id="next-btn" style="margin-top:20px;">ДАЛЕЕ</button>
+        <button class="menu-btn" id="next-btn" style="margin-top:20px;">ДАЛЕЕ</button>
     </div>
 
     <canvas id="game"></canvas>
@@ -46,13 +64,12 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const cutsceneImg = document.getElementById('cutscene-img');
 
-// Загрузка ресурсов
 const imgs = {
     bg1: new Image(), bg2: new Image(), beer: new Image(), jump: new Image(),
     run: [new Image(), new Image(), new Image()], house: new Image()
 };
-imgs.bg1.src = 'bg_new.png';
-imgs.bg2.src = 'bg.png';
+imgs.bg1.src = 'bg_new.png'; 
+imgs.bg2.src = 'bg.png';     
 imgs.beer.src = 'beer.png'; 
 imgs.jump.src = 'jump.png';
 imgs.run[0].src = 'run_1.png'; 
@@ -61,20 +78,15 @@ imgs.run[2].src = 'run_3.png';
 imgs.house.src = 'house.png';
 
 const slides = ['end_1.jpg', 'end_2.jpg', 'end_3.jpg', 'end_4.jpg', 'end_5.jpg'];
-const phrases = ["ты вроде пить бросила", "ЧИЛАНЗАР намного ближе", "ага ага, щас", "ну концовка того стоит" ];
+const phrases = ["АНДЕГРАУНД НЕ ПРОЩАЕТ", "ЧИЛАНЗАРСКИЕ ДВОРИКИ ЖДУТ", "ТЫ СЛИШКОМ ПЬЯНА ДЛЯ ЭТОГО", "КИБРАЙ ОКАЗАЛСЯ СИЛЬНЕЕ"];
 
-let currentSlide = 0, gameState = 'MENU', score = 0, gameSpeed = 7, houseX = -5000;
-let obstacles = [];
+let currentSlide = 0, gameState = 'MENU', score = 0, gameSpeed = 7.2, houseX = -5000;
 
-function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resize);
-resize();
-
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 const groundY = canvas.height - (canvas.height / 3.5);
-const player = { x: 50, y: groundY - 110, w: 90, h: 110, dy: 0, jf: 16, g: 0.8, grounded: false, frame: 0, tick: 0 };
+
+const player = { x: 50, y: groundY - 110, w: 90, h: 110, dy: 0, jf: 17.5, g: 0.75, grounded: false, frame: 0, tick: 0 };
+let obstacles = [];
 
 function startGame() {
     gameState = 'PLAYING';
@@ -85,26 +97,14 @@ function startGame() {
 function update() {
     if (gameState !== 'PLAYING') return;
 
-    // Гравитация и прыжок
-    player.dy += player.g; 
-    player.y += player.dy;
+    player.dy += player.g; player.y += player.dy;
+    if (player.y + player.h > groundY) { player.y = groundY - player.h; player.dy = 0; player.grounded = true; }
+    if (player.grounded) { player.tick++; if (player.tick % 7 === 0) player.frame = (player.frame + 1) % 3; }
 
-    if (player.y + player.h > groundY) { 
-        player.y = groundY - player.h; 
-        player.dy = 0; 
-        player.grounded = true; 
-    }
-
-    if (player.grounded) { 
-        player.tick++; 
-        if (player.tick % 8 === 0) player.frame = (player.frame + 1) % 3; 
-    }
-
-    // Логика дома (финал)
     if (score >= 40 && houseX < -1000) houseX = canvas.width;
     if (houseX > -1000) {
         houseX -= gameSpeed;
-        if (player.x + player.w > houseX + 150) { // Касание дома
+        if (player.x + player.w > houseX + 100) {
             gameState = 'WAIT_FINALE';
             canvas.style.filter = 'brightness(0)';
             setTimeout(() => {
@@ -112,50 +112,39 @@ function update() {
                 document.getElementById('cutscene').style.display = 'flex';
                 document.getElementById('ui').style.display = 'none';
                 showSlide();
-            }, 2000);
+            }, 3000);
         }
     }
 
-    // Препятствия
     for (let i = obstacles.length - 1; i >= 0; i--) {
         obstacles[i].x -= gameSpeed;
         let o = obstacles[i];
-
-        // Коллизия (уменьшенные хитбоксы для честности)
-        if (player.x + 30 < o.x + o.w && player.x + player.w - 30 > o.x && 
-            player.y + 10 < o.y + o.h && player.y + player.h > o.y + 10) {
+        if (player.x + 35 < o.x + o.w && player.x + player.w - 35 > o.x && player.y + 10 < o.y + o.h && player.y + player.h > o.y + 10) {
             gameState = 'DEAD';
             document.getElementById('death-msg').innerText = phrases[Math.floor(Math.random() * phrases.length)];
             document.getElementById('death-screen').style.display = 'flex';
         }
-
-        if (o.x + o.w < 0) { 
-            obstacles.splice(i, 1); 
-            score++; 
-            document.getElementById('score').innerText = score; 
-            if (score % 5 === 0) gameSpeed += 0.2; // Плавное ускорение
-        }
+        if (o.x + o.w < 0) { obstacles.splice(i, 1); score++; document.getElementById('score').innerText = score; }
     }
 
-    if (score < 40 && Math.random() < 0.03 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 350)) {
+    if (score < 40 && Math.random() < 0.04 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 320)) {
         obstacles.push({ x: canvas.width, y: groundY - 75, w: 45, h: 75 });
     }
 }
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Отрисовка фона
     let currentBG = score < 20 ? imgs.bg1 : imgs.bg2;
     ctx.drawImage(currentBG, 0, 0, canvas.width, canvas.height);
 
     if (gameState === 'PLAYING' || gameState === 'WAIT_FINALE' || gameState === 'DEAD') {
         if (houseX > -1000) ctx.drawImage(imgs.house, houseX, groundY - 320, 320, 320);
         obstacles.forEach(o => ctx.drawImage(imgs.beer, o.x, o.y, o.w, o.h));
-        const cur = (player.grounded) ? imgs.run[player.frame] : imgs.jump;
+        const cur = player.grounded ? imgs.run[player.frame] : imgs.jump;
         ctx.drawImage(cur, player.x, player.y, player.w, player.h);
     }
     
+    // Вызываем update здесь для синхронизации с кадрами
     if (gameState === 'PLAYING') update();
     requestAnimationFrame(draw);
 }
@@ -166,24 +155,18 @@ function showSlide() {
         setTimeout(() => {
             cutsceneImg.src = slides[currentSlide];
             cutsceneImg.onload = () => cutsceneImg.classList.add('show');
-        }, 150);
+        }, 100);
     } else location.reload();
 }
 
-document.getElementById('next-btn').onclick = (e) => { 
-    e.stopPropagation();
-    currentSlide++; 
-    showSlide(); 
-};
-
+document.getElementById('next-btn').onclick = () => { currentSlide++; showSlide(); };
 window.addEventListener('touchstart', (e) => { 
     if (gameState === 'PLAYING' && player.grounded && e.target.tagName !== 'BUTTON') { 
-        player.dy = -player.jf; 
-        player.grounded = false; 
+        player.dy = -player.jf; player.grounded = false; 
     } 
 });
 
-// Запуск цикла
+// Запускаем через анимационный кадр вместо интервала
 draw();
 </script>
 </body>
