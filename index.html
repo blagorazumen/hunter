@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Altushka Run: Underground Edition</title>
+    <title>Ксюшачка^</title>
     <style>
         body { margin: 0; background: #000; color: white; font-family: 'Courier New', monospace; overflow: hidden; touch-action: manipulation; }
         canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; }
@@ -12,7 +12,7 @@
         #ui { top: 20px; height: auto; font-size: 28px; display: none; color: #ff00ff; text-shadow: 2px 2px #000; }
         
         .overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; background: rgba(0,0,0,0.8); }
-        h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 20px; }
+        h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 20px; letter-spacing: 2px; }
         
         #death-screen { display: none; }
         #death-msg { color: #00ffff; font-size: 26px; font-weight: bold; margin-bottom: 30px; padding: 0 20px; text-transform: uppercase; text-shadow: 2px 2px #ff00ff; }
@@ -36,12 +36,12 @@
     <div id="ui">SCORE: <span id="score">0</span></div>
     
     <div id="menu" class="overlay">
-        <h1>KSUSHACHKA RUN</h1>
+        <h1>КСЮШАЧКА^</h1>
         <button onclick="startGame()">ИГРАТЬ</button>
     </div>
 
     <div id="death-screen" class="overlay">
-        <h1>КРАШ!</h1>
+        <h1>ППЦ;)</h1>
         <div id="death-msg"></div>
         <button onclick="location.reload()">ЕЩЁ РАЗ</button>
     </div>
@@ -69,8 +69,6 @@ imgs.run[0].src = 'run_1.png'; imgs.run[1].src = 'run_2.png'; imgs.run[2].src = 
 imgs.house.src = 'house.png';
 
 const slides = ['end_1.jpg', 'end_2.jpg', 'end_3.jpg', 'end_4.jpg', 'end_5.jpg'];
-
-// ТОТ САМЫЙ КРУТОЙ СПИСОК
 const phrases = [
     "АНДЕГРАУНД НЕ ПРОЩАЕТ",
     "ЧИЛАНЗАРСКИЕ ДВОРИКИ ЖДУТ",
@@ -88,12 +86,13 @@ const phrases = [
     "СЛИШКОМ МНОГО «КИБРАЯ»"
 ];
 
-let currentSlide = 0, gameState = 'MENU', score = 0, gameSpeed = 8.5, houseX = -5000;
+let currentSlide = 0, gameState = 'MENU', score = 0, gameSpeed = 7.2, houseX = -5000;
 
 canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 const groundY = canvas.height - (canvas.height / 3.5);
 
-const player = { x: 50, y: groundY - 110, w: 90, h: 110, dy: 0, jf: 18, g: 0.85, grounded: false, frame: 0, tick: 0 };
+// Прыжок стал чуть мягче (jf: 17.5, g: 0.75) для лучшего контроля
+const player = { x: 50, y: groundY - 110, w: 90, h: 110, dy: 0, jf: 17.5, g: 0.75, grounded: false, frame: 0, tick: 0 };
 let obstacles = [];
 
 function startGame() {
@@ -107,7 +106,7 @@ function update() {
 
     player.dy += player.g; player.y += player.dy;
     if (player.y + player.h > groundY) { player.y = groundY - player.h; player.dy = 0; player.grounded = true; }
-    if (player.grounded) { player.tick++; if (player.tick % 6 === 0) player.frame = (player.frame + 1) % 3; }
+    if (player.grounded) { player.tick++; if (player.tick % 7 === 0) player.frame = (player.frame + 1) % 3; }
 
     if (score >= 28 && houseX < -1000) houseX = canvas.width;
     if (houseX > -1000) {
@@ -119,8 +118,7 @@ function update() {
         obstacles[i].x -= gameSpeed;
         let o = obstacles[i];
         
-        // Хитбоксы: честное касание
-        if (player.x + 30 < o.x + o.w && player.x + player.w - 30 > o.x && player.y + 10 < o.y + o.h && player.y + player.h > o.y + 10) {
+        if (player.x + 35 < o.x + o.w && player.x + player.w - 35 > o.x && player.y + 10 < o.y + o.h && player.y + player.h > o.y + 10) {
             gameState = 'DEAD';
             deathMsg.innerText = phrases[Math.floor(Math.random() * phrases.length)];
             deathScreen.style.display = 'flex';
@@ -128,8 +126,7 @@ function update() {
         if (o.x + o.w < 0) { obstacles.splice(i, 1); score++; document.getElementById('score').innerText = score; }
     }
 
-    // Частота появления бутылок увеличена (0.05)
-    if (score < 28 && Math.random() < 0.05 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 250)) {
+    if (score < 28 && Math.random() < 0.04 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 320)) {
         obstacles.push({ x: canvas.width, y: groundY - 75, w: 45, h: 75 });
     }
 }
