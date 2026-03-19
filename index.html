@@ -6,25 +6,30 @@
     <title>Ксюшачка^</title>
     <style>
         body { margin: 0; background: #000; color: white; font-family: 'Courier New', monospace; overflow: hidden; touch-action: manipulation; }
-        canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; }
+        canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; transition: filter 3s ease; }
         
         #ui, #menu, #cutscene, #death-screen { position: absolute; left: 0; width: 100%; height: 100%; text-align: center; z-index: 100; pointer-events: none; }
         #ui { top: 20px; height: auto; font-size: 28px; display: none; color: #ff00ff; text-shadow: 2px 2px #000; }
         
         .overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; background: rgba(0,0,0,0.8); }
-        h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 20px; letter-spacing: 2px; }
+        h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 20px; }
         
         #death-screen { display: none; }
-        #death-msg { color: #00ffff; font-size: 26px; font-weight: bold; margin-bottom: 30px; padding: 0 20px; text-transform: uppercase; text-shadow: 2px 2px #ff00ff; }
+        #death-msg { color: #00ffff; font-size: 24px; font-weight: bold; margin-bottom: 30px; text-shadow: 2px 2px #ff00ff; }
 
         #cutscene { 
             display: none; background: #000; pointer-events: auto;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            flex-direction: column; justify-content: center; align-items: center;
         }
+        /* Исправление отображения фото */
         #cutscene img { 
-            max-width: 90%; max-height: 75%; object-fit: contain; 
-            border: 2px solid #ff00ff; box-shadow: 0 0 20px #ff00ff;
-            opacity: 0; transition: opacity 1.5s ease-in-out;
+            width: auto; height: auto;
+            max-width: 100%; max-height: 80vh; 
+            object-fit: contain;
+            display: block;
+            opacity: 0; transition: opacity 1s ease-in-out;
+            border: 2px solid #ff00ff;
         }
         #cutscene img.show { opacity: 1; }
 
@@ -47,7 +52,7 @@
     </div>
 
     <div id="cutscene">
-        <img id="cutscene-img" src="">
+        <img id="cutscene-img" src="" alt="Финал">
         <button id="next-btn" style="margin-top:20px;">ДАЛЕЕ</button>
     </div>
 
@@ -58,6 +63,7 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const deathScreen = document.getElementById('death-screen');
 const deathMsg = document.getElementById('death-msg');
+const cutsceneDiv = document.getElementById('cutscene');
 const cutsceneImg = document.getElementById('cutscene-img');
 
 const imgs = {
@@ -69,29 +75,13 @@ imgs.run[0].src = 'run_1.png'; imgs.run[1].src = 'run_2.png'; imgs.run[2].src = 
 imgs.house.src = 'house.png';
 
 const slides = ['end_1.jpg', 'end_2.jpg', 'end_3.jpg', 'end_4.jpg', 'end_5.jpg'];
-const phrases = [
-    "АНДЕГРАУНД НЕ ПРОЩАЕТ",
-    "ЧИЛАНЗАРСКИЕ ДВОРИКИ ЖДУТ",
-    "ТЫ СЛИШКОМ ПЬЯНА ДЛЯ ЭТОГО",
-    "КИБРАЙ ОКАЗАЛСЯ СИЛЬНЕЕ",
-    "ЭТО ТЕБЕ НЕ ВПИСКА",
-    "ПЕРЕБРАЛА С КИСЛОТОЙ?",
-    "СЛИШКОМ МНОГО ТРЭША",
-    "ОТХОДНЯКИ БУДУТ ЖЁСТКИМИ",
-    "ТЫ ВООБЩЕ ВИДИШЬ ДОРОГУ?",
-    "АЛЬТУШКА ПРИУНЫЛА",
-    "ЧИСТЫЙ ТАШКЕНТСКИЙ ХАОС",
-    "ТЫ ГДЕ-ТО ПОТЕРЯЛАСЬ...",
-    "ЭТО КОНЕЦ МАРШРУТА",
-    "СЛИШКОМ МНОГО «КИБРАЯ»"
-];
+const phrases = ["АНДЕГРАУНД НЕ ПРОЩАЕТ", "ЧИЛАНЗАРСКИЕ ДВОРИКИ ЖДУТ", "ТЫ СЛИШКОМ ПЬЯНА ДЛЯ ЭТОГО", "КИБРАЙ ОКАЗАЛСЯ СИЛЬНЕЕ", "ЭТО ТЕБЕ НЕ ВПИСКА", "ПЕРЕБРАЛА С КИСЛОТОЙ?"];
 
 let currentSlide = 0, gameState = 'MENU', score = 0, gameSpeed = 7.2, houseX = -5000;
 
 canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 const groundY = canvas.height - (canvas.height / 3.5);
 
-// Прыжок стал чуть мягче (jf: 17.5, g: 0.75) для лучшего контроля
 const player = { x: 50, y: groundY - 110, w: 90, h: 110, dy: 0, jf: 17.5, g: 0.75, grounded: false, frame: 0, tick: 0 };
 let obstacles = [];
 
@@ -111,13 +101,17 @@ function update() {
     if (score >= 28 && houseX < -1000) houseX = canvas.width;
     if (houseX > -1000) {
         houseX -= gameSpeed;
-        if (player.x + player.w > houseX + 150) startCutscene();
+        // Момент встречи с домом
+        if (player.x + player.w > houseX + 100) {
+            gameState = 'WAIT_FINALE';
+            canvas.style.filter = 'brightness(0)'; // Затемнение
+            setTimeout(startCutscene, 3000); // Пауза 3 сек
+        }
     }
 
     for (let i = obstacles.length - 1; i >= 0; i--) {
         obstacles[i].x -= gameSpeed;
         let o = obstacles[i];
-        
         if (player.x + 35 < o.x + o.w && player.x + player.w - 35 > o.x && player.y + 10 < o.y + o.h && player.y + player.h > o.y + 10) {
             gameState = 'DEAD';
             deathMsg.innerText = phrases[Math.floor(Math.random() * phrases.length)];
@@ -134,7 +128,7 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(imgs.bg, 0, 0, canvas.width, canvas.height);
-    if (gameState === 'PLAYING') {
+    if (gameState === 'PLAYING' || gameState === 'WAIT_FINALE') {
         if (houseX > -1000) ctx.drawImage(imgs.house, houseX, groundY - 320, 320, 320);
         obstacles.forEach(o => ctx.drawImage(imgs.beer, o.x, o.y, o.w, o.h));
         const cur = player.grounded ? imgs.run[player.frame] : imgs.jump;
@@ -145,7 +139,7 @@ function draw() {
 
 function startCutscene() {
     gameState = 'CUT';
-    document.getElementById('cutscene').style.display = 'flex';
+    cutsceneDiv.style.display = 'flex';
     document.getElementById('ui').style.display = 'none';
     showSlide();
 }
@@ -153,10 +147,11 @@ function startCutscene() {
 function showSlide() {
     if (currentSlide < slides.length) {
         cutsceneImg.classList.remove('show');
+        // Небольшая задержка перед сменой кадра для плавности
         setTimeout(() => {
             cutsceneImg.src = slides[currentSlide];
             cutsceneImg.onload = () => cutsceneImg.classList.add('show');
-        }, 150);
+        }, 100);
     } else location.reload();
 }
 
