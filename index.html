@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Altushka Run: Pure Ksenia</title>
+    <title>Altushka Run: Smooth Final</title>
     <style>
         body { margin: 0; background: #000; color: white; font-family: 'Courier New', monospace; overflow: hidden; touch-action: manipulation; }
         canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; }
@@ -14,41 +14,39 @@
         #menu { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; background: rgba(0,0,0,0.6); }
         #menu h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 30px; }
         
-        /* ЦЕНТРИРОВАНИЕ КАРТИНОК ФИНАЛА */
+        /* ПЛАВНОЕ ПОЯВЛЕНИЕ СЛАЙДОВ */
         #cutscene { 
             display: none; 
             background: #000; 
             pointer-events: auto;
-            display: none; /* Переключается скриптом */
             flex-direction: column;
             justify-content: center;
             align-items: center;
         }
         #cutscene img { 
-            max-width: 95%; 
-            max-height: 80%; 
+            max-width: 90%; 
+            max-height: 70%; 
             object-fit: contain; 
-            border: 2px solid #ff00ff;
-            box-shadow: 0 0 15px #ff00ff;
+            border: 3px solid #ff00ff;
+            box-shadow: 0 0 20px #ff00ff;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out; /* Плавность появления */
         }
+        #cutscene img.show { opacity: 1; }
 
-        button { background: #ff00ff; border: none; padding: 20px 60px; color: white; font-size: 24px; border-radius: 12px; cursor: pointer; box-shadow: 0 6px #990099; font-weight: bold; pointer-events: auto; margin-top: 20px; }
-        button:active { transform: translateY(3px); box-shadow: 0 2px #990099; }
+        button { background: #ff00ff; border: none; padding: 20px 60px; color: white; font-size: 24px; border-radius: 12px; cursor: pointer; box-shadow: 0 6px #990099; font-weight: bold; pointer-events: auto; margin-top: 25px; }
     </style>
 </head>
 <body>
     <div id="ui">SCORE: <span id="score">0</span></div>
-    
     <div id="menu">
         <h1>ALTUSHKA RUN</h1>
         <button id="start-btn">ИГРАТЬ</button>
     </div>
-
     <div id="cutscene">
-        <img id="cutscene-img" src="">
+        <img id="cutscene-img" src="" alt="Финал">
         <button id="next-btn">ДАЛЕЕ</button>
     </div>
-
     <canvas id="game"></canvas>
 
 <script>
@@ -63,27 +61,26 @@ const imgs = {
     run: [new Image(), new Image(), new Image()],
     house: new Image()
 };
-imgs.bg.src = 'bg.png'; imgs.beer.src = 'beer.png'; imgs.jump.src = 'jump.png';
-imgs.run[0].src = 'run_1.png'; imgs.run[1].src = 'run_2.png'; imgs.run[2].src = 'run_3.png';
-imgs.house.src = 'house.png';
+imgs.bg.src = 'bg.png'; 
+imgs.beer.src = 'beer.png'; 
+imgs.jump.src = 'jump.png';
+imgs.run[0].src = 'run_1.png'; 
+imgs.run[1].src = 'run_2.png'; 
+imgs.run[2].src = 'run_3.png';
+imgs.house.src = 'дом.png'; // Исправлено под твой GitHub
 
 const slides = ['end_1.jpg', 'end_2.jpg', 'end_3.jpg', 'end_4.jpg', 'end_5.jpg'];
 let currentSlide = 0;
 let gameState = 'MENU';
 let score = 0;
-let gameSpeed = 8; // Высокая скорость
+let gameSpeed = 8;
 let houseX = -5000;
 
 canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 const groundY = canvas.height - (canvas.height / 3.5);
 
-// Настройки игрока: jf 18 - высокий прыжок
 const player = { x: 50, y: groundY - 110, w: 90, h: 110, dy: 0, jf: 18, g: 0.85, grounded: false, frame: 0, tick: 0 };
 let obstacles = [];
-
-function spawn() {
-    obstacles.push({ x: canvas.width, y: groundY - 75, w: 45, h: 75 });
-}
 
 function update() {
     if (gameState !== 'PLAYING') return;
@@ -96,20 +93,26 @@ function update() {
     if (score >= 28 && houseX < -1000) houseX = canvas.width;
     if (houseX > -1000) {
         houseX -= gameSpeed;
-        if (player.x + player.w > houseX + 120) startCutscene();
+        if (player.x + player.w > houseX + 150) startCutscene();
     }
 
     for (let i = obstacles.length - 1; i >= 0; i--) {
         obstacles[i].x -= gameSpeed;
         let o = obstacles[i];
-        if (player.x < o.x + o.w - 10 && player.x + player.w > o.x + 10 && player.y < o.y + o.h && player.y + player.h > o.y) {
+        
+        // УЛУЧШЕННЫЕ ХИТБОКСЫ (уменьшены зазоры на 25 пикселей)
+        if (player.x + 25 < o.x + o.w && 
+            player.x + player.w - 25 > o.x && 
+            player.y + 10 < o.y + o.h && 
+            player.y + player.h > o.y + 10) {
             location.reload();
         }
-        if (o.x + o.w < 0) { obstacles.splice(i, 1); score++; scoreSpan.innerText = score; if(score % 5 === 0) gameSpeed += 0.2; }
+        
+        if (o.x + o.w < 0) { obstacles.splice(i, 1); score++; scoreSpan.innerText = score; }
     }
 
-    if (score < 28 && Math.random() < 0.02 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 380)) {
-        spawn();
+    if (score < 28 && Math.random() < 0.02 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 400)) {
+        obstacles.push({ x: canvas.width, y: groundY - 75, w: 45, h: 75 });
     }
 }
 
@@ -127,14 +130,18 @@ function draw() {
 
 function startCutscene() {
     gameState = 'CUT';
-    cutsceneDiv.style.display = 'flex'; // Используем flex для центровки
+    cutsceneDiv.style.display = 'flex';
     document.getElementById('ui').style.display = 'none';
     showSlide();
 }
 
 function showSlide() {
     if (currentSlide < slides.length) {
-        cutsceneImg.src = slides[currentSlide];
+        cutsceneImg.classList.remove('show'); // Сначала гасим
+        setTimeout(() => {
+            cutsceneImg.src = slides[currentSlide];
+            cutsceneImg.onload = () => cutsceneImg.classList.add('show'); // Проявляем после загрузки
+        }, 100);
     } else {
         location.reload();
     }
@@ -146,15 +153,11 @@ document.getElementById('start-btn').onclick = () => {
     document.getElementById('ui').style.display = 'block'; 
 };
 
-document.getElementById('next-btn').onclick = () => { 
-    currentSlide++; 
-    showSlide(); 
-};
+document.getElementById('next-btn').onclick = () => { currentSlide++; showSlide(); };
 
 window.addEventListener('touchstart', (e) => { 
     if (gameState === 'PLAYING' && player.grounded && e.target.tagName !== 'BUTTON') { 
-        player.dy = -player.jf; 
-        player.grounded = false; 
+        player.dy = -player.jf; player.grounded = false; 
     } 
 });
 
@@ -163,3 +166,4 @@ draw();
 </script>
 </body>
 </html>
+
