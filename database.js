@@ -1,23 +1,19 @@
 const DB = {
-    // Коэффициенты районов
     districts: {
-        "S": { name: "Мирабадский, Шайхантахурский (City)", multiplier: 10 },
-        "A": { name: "Яккасарайский, Мирзо-Улугбекский", multiplier: 5 },
-        "B": { name: "Чиланзарский, Юнусабадский", multiplier: 2 },
-        "C": { name: "Яшнабадский, Алмазарский, Учтепинский", multiplier: 1 },
-        "D": { name: "Сергелийский, Бектемирский, Янгихаётский", multiplier: 0.5 }
+        "S": { name: "City (Mirabad)", mult: 10 },
+        "A": { name: "Yakkasaray/M.Ulugbek", mult: 5 },
+        "B": { name: "Chilanzar/Yunusabad", mult: 2 },
+        "C": { name: "Yashnabad/Almazar", mult: 1 },
+        "D": { name: "Sergeli/Bektemir", mult: 0.5 }
     },
-
-    // Каталог товаров по категориями
     items: {
         tasks: [
             {
                 id: "cig",
                 name: "Точка штучных сигарет",
-                basePrice: 1000000,
-                baseIncome: 16.66, // Доход в секунду при множителе x1
-                // Здесь будем хранить, сколько точек куплено в каждом районе
-                owned: { "S": 0, "A": 0, "B": 0, "C": 0, "D": 0 } 
+                price: 1000000,
+                income: 16.6,
+                owned: { "S": 0, "A": 0, "B": 0, "C": 0, "D": 0 }
             }
         ],
         clothes: [],
