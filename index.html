@@ -3,138 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GATEKEEPER • ORG</title>
+    <title>HUNTER • MENU</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
     <style>
-        :root { --bg: #000; --ivory: #fdf5e6; }
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; font-style: italic; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000 !important; color: var(--ivory); font-family: 'Times New Roman', serif; overflow: hidden; }
+        :root { --ivory: #fdf5e6; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; filter: invert(100%) sepia(20%) brightness(0.8) contrast(1.2); transition: 1s; opacity: 0; }
-        
-        .header { position: relative; z-index: 100; padding: 20px; text-align: center; background: rgba(0,0,0,0.85); border-bottom: 0.5px solid rgba(253, 245, 230, 0.15); }
-        
-        #submit-modal { 
-            position: fixed; bottom: -100%; left: 0; width: 100%; height: 85vh;
-            background: rgba(8, 8, 8, 0.98); backdrop-filter: blur(15px);
-            border-top: 1px solid var(--ivory); transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
-            z-index: 200; padding: 30px; overflow-y: auto;
-        }
-        #submit-modal.open { bottom: 0; }
-        
-        input, textarea, select { 
-            width: 100%; background: transparent; border: none; 
-            border-bottom: 0.5px solid rgba(253, 245, 230, 0.2); 
-            color: var(--ivory); padding: 12px 0; margin: 5px 0; 
-            font-family: inherit; font-size: 16px; outline: none; appearance: none;
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: #000; color: var(--ivory); 
+            font-family: 'Times New Roman', serif; font-style: italic;
+            overflow: hidden;
         }
 
-        .checkbox-container { display: flex; align-items: center; margin: 15px 0; font-size: 14px; opacity: 0.8; }
-        input[type="checkbox"] { width: 18px; height: 18px; margin-right: 10px; accent-color: var(--ivory); }
-
-        #dc-wrapper { max-height: 0; overflow: hidden; transition: 0.4s ease-out; opacity: 0; }
-        #dc-wrapper.visible { max-height: 100px; opacity: 1; }
-        
-        .btn-send { 
-            background: var(--ivory); color: #000; border: none; 
-            width: 100%; padding: 18px; font-weight: bold; 
-            text-transform: uppercase; margin-top: 25px; letter-spacing: 2px;
+        /* Твой фон */
+        .bg-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('bg.jpg') center center / cover no-repeat;
+            filter: grayscale(100%) brightness(0.2) contrast(1.1);
+            z-index: 1;
         }
+
+        .vignette {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 30%, black 100%);
+            z-index: 2;
+        }
+
+        /* Центрированное меню */
+        .menu-layer {
+            position: relative; z-index: 10;
+            height: 100vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 40px;
+        }
+
+        .title-section { text-align: center; margin-bottom: 60px; }
+        .title-section h1 { 
+            font-size: 28px; letter-spacing: 10px; text-transform: uppercase; 
+            margin: 0; opacity: 0.9; font-weight: 300;
+        }
+        .title-section span { font-size: 10px; letter-spacing: 4px; opacity: 0.4; text-transform: uppercase; }
+
+        .nav-buttons { width: 100%; max-width: 250px; }
+
+        .menu-btn {
+            background: transparent; border: none;
+            color: var(--ivory); padding: 15px; width: 100%;
+            margin-bottom: 10px; text-transform: uppercase;
+            letter-spacing: 4px; font-size: 12px; cursor: pointer;
+            transition: 0.5s; opacity: 0.6;
+            border-bottom: 0.5px solid rgba(253, 245, 230, 0);
+        }
+        
+        /* Эффект при нажатии */
+        .menu-btn:active { opacity: 1; border-bottom: 0.5px solid var(--ivory); transform: scale(1.05); }
+
+        .footer-info { position: absolute; bottom: 20px; font-size: 9px; opacity: 0.3; letter-spacing: 2px; }
     </style>
 </head>
 <body>
-    <div id="map"></div>
-    <div class="header">
-        <div style="font-size:11px; letter-spacing: 4px; opacity: 0.8;"><i>GATEKEEPER • CONTROL</i></div>
-    </div>
 
-    <div id="submit-modal">
-        <div style="font-size: 9px; letter-spacing: 2px; opacity: 0.5; margin-bottom: 10px;"><i>LOC: <span id="coords-display">waiting for touch...</span></i></div>
-        
-        <input type="text" id="raveName" placeholder="Event Name">
-        <input type="text" id="raveTime" placeholder="Date & Time">
-        
-        <select id="ageLimit">
-            <option value="18+">Face Control: 18+</option>
-            <option value="21+">Face Control: 21+</option>
-            <option value="All Ages">No age limit</option>
-        </select>
+    <div class="bg-overlay"></div>
+    <div class="vignette"></div>
 
-        <label class="checkbox-container">
-            <input type="checkbox" id="dc-trigger" onchange="toggleDC()"> 
-            <i>Special Dress Code?</i>
-        </label>
-        
-        <div id="dc-wrapper">
-            <input type="text" id="dc-text" placeholder="Describe Dress Code...">
+    <div class="menu-layer">
+        <div class="title-section">
+            <h1>HUNTER</h1>
+            <span>The Dark Plains of Trilliant</span>
         </div>
 
-        <textarea id="raveDesc" rows="2" placeholder="Line-up & Details..."></textarea>
-        
-        <button class="btn-send" onclick="sendViaBot()">SUBMIT TO GATEKEEPER</button>
-        <button onclick="closeModal()" style="background:none; border:none; color:rgba(253,245,230,0.4); width:100%; margin-top:15px; font-size:10px;"><i>[ DISMISS ]</i></button>
+        <div class="nav-buttons">
+            <button class="menu-btn" onclick="startGame()">Начать путь</button>
+            <button class="menu-btn" onclick="showHero()">Персонаж</button>
+            <button class="menu-btn" onclick="tgClose()">Покинуть земли</button>
+        </div>
+
+        <div class="footer-info">ALPHA VERSION • 2026</div>
     </div>
 
     <script>
-        const BOT_TOKEN = '8688283249:AAFSd5K6zDHsPlcRfLzGRoJH75BOo6OvvDE';
-        const MY_ID = '7233805180';
-
         let tg = window.Telegram.WebApp;
-        let selectedCoords = null;
         tg.expand();
+        tg.headerColor = '#000000';
 
-        function toggleDC() {
-            document.getElementById('dc-wrapper').className = document.getElementById('dc-trigger').checked ? 'visible' : '';
+        function startGame() {
+            tg.HapticFeedback.impactOccurred('medium');
+            // Позже мы пропишем переход к первой сцене
+            alert("Путь начинается..."); 
         }
 
-        ymaps.ready(function() {
-            var myMap = new ymaps.Map("map", { 
-                center: [41.311, 69.240], zoom: 13, controls: [] 
-            });
-            
-            document.getElementById('map').style.opacity = "1";
+        function showHero() {
+            tg.HapticFeedback.selectionChanged();
+            alert("Никита • Уровень 1 • Кинжал Триллианта");
+        }
 
-            myMap.events.add('click', function (e) {
-                selectedCoords = e.get('coords');
-                document.getElementById('coords-display').innerText = selectedCoords[0].toFixed(5) + " / " + selectedCoords[1].toFixed(5);
-                tg.HapticFeedback.impactOccurred('medium');
-                document.getElementById('submit-modal').classList.add('open');
-            });
-        });
-
-        function closeModal() { document.getElementById('submit-modal').classList.remove('open'); }
-
-        async function sendViaBot() {
-            const name = document.getElementById('raveName').value;
-            const time = document.getElementById('raveTime').value;
-            const age = document.getElementById('ageLimit').value;
-            const dc = document.getElementById('dc-trigger').checked ? document.getElementById('dc-text').value : "None";
-            const desc = document.getElementById('raveDesc').value;
-
-            if (!name || !selectedCoords) {
-                tg.showAlert("Please select a location and enter event name.");
-                return;
-            }
-
-            const text = `✨ NEW SUBMISSION\n\n📛 Name: ${name}\n📅 Time: ${time}\n🔞 Age: ${age}\n👗 Dress: ${dc}\n📍 Coords: ${selectedCoords[0]}, ${selectedCoords[1]}\n📝 Info: ${desc}`;
-            
-            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${MY_ID}&text=${encodeURIComponent(text)}`;
-            
-            try {
-                const response = await fetch(url);
-                if(response.ok) {
-                    tg.showAlert("Request sent to Gatekeeper.");
-                    tg.close();
-                } else {
-                    tg.showAlert("Error: Check bot settings.");
-                }
-            } catch (e) {
-                tg.showAlert("Connection failed.");
-            }
+        function tgClose() {
+            tg.close();
         }
     </script>
 </body>
 </html>
-
-
