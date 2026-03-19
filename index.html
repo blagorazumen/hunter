@@ -9,32 +9,35 @@
 <body>
     <div class="app">
         <div class="header">
-            <div class="balance"><span id="cash-display">0</span> СУМ</div>
-            <div id="income-display" style="color:var(--gold); font-size:12px; margin-top:5px;">ДОХОД: 0 / СЕК</div>
+            <div class="balance"><span id="cash-display">100 000</span> СУМ</div>
+            <div id="income-display" class="income-text">ДОХОД: 0 / СЕК</div>
         </div>
 
-        <div class="char-container">ФУНДАМЕНТ ЗАЛОЖЕН</div>
+        <div class="photo-zone">
+            <div class="img-placeholder">МЕСТО ДЛЯ АРТА</div>
+        </div>
 
         <div class="click-section">
-            <button class="main-btn" onclick="doSueta()">СУЕТИТЬ</button>
+            <div id="emoji-container"></div>
+            <button class="main-btn" onclick="suetaClick()">СУЕТИТЬ</button>
         </div>
 
         <div class="bottom-nav">
-            <button class="nav-item" onclick="openTab('assets')">ИМУЩЕСТВО</button>
-            <button class="nav-item active" id="shop-btn" onclick="openTab('shop')">МАГАЗИН</button>
-            <button class="nav-item" id="code-btn" onclick="openTab('code')">КОД</button>
+            <button class="nav-item" onclick="openShop()">🛒</button>
+            <button class="nav-item" onclick="openAssets()">🛡️</button>
+            <button class="nav-item" onclick="openMenu()">☰</button>
         </div>
     </div>
 
-    <div id="main-overlay" class="overlay">
+    <div id="overlay" class="overlay">
         <div class="overlay-header">
-            <button class="static-back-btn" onclick="goBack()">← НАЗАД</button>
-            <div class="overlay-balance"><span id="ov-cash">0</span> СУМ</div>
+            <button class="nav-btn" id="back-btn">← НАЗАД</button>
+            <div id="overlay-title" class="title-gold">МАГАЗИН</div>
+            <button class="nav-btn" onclick="closeAll()">✕ ВЫХОД</button>
         </div>
-        <div id="main-content" class="overlay-content"></div>
+        <div id="overlay-content" class="overlay-body"></div>
     </div>
 
-    <script src="database.js"></script>
     <script src="logic.js"></script>
 </body>
 </html>
