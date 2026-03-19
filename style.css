@@ -4,13 +4,7 @@
     --bg: #000000;
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
 
 body {
     background: var(--bg);
@@ -20,56 +14,24 @@ body {
     height: 100vh;
 }
 
-/* Главный экран */
-.app {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: 20px;
-    text-align: center;
-}
+.app { display: flex; flex-direction: column; height: 100%; padding: 20px; text-align: center; }
 
-.header {
-    margin-top: 40px;
-}
+.balance { font-size: 38px; font-weight: bold; margin-top: 40px; }
+.income-text { color: var(--gold); font-size: 14px; text-transform: uppercase; }
 
-.balance {
-    font-size: 38px;
-    font-weight: bold;
-    letter-spacing: 2px;
-}
-
-.income-text {
-    color: var(--gold);
-    font-size: 14px;
-    margin-top: 5px;
-    text-transform: uppercase;
-}
-
-/* Прямоугольник под фото */
 .photo-zone {
     width: 100%;
     height: 200px;
     border: 1px solid #1a1a1a;
-    margin: 30px 0;
+    margin: 20px 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(180deg, #050505 0%, #000 100%);
+    background: #050505;
     color: #333;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    font-size: 12px;
 }
 
-/* Кнопка СУЕТИТЬ */
-.click-section {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-}
+.click-section { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; }
 
 .main-btn {
     width: 180px;
@@ -79,32 +41,13 @@ body {
     background: none;
     color: var(--ivory);
     font-size: 18px;
-    letter-spacing: 2px;
     cursor: pointer;
-    transition: 0.1s;
-    z-index: 5;
 }
 
-.main-btn:active {
-    transform: scale(0.95);
-    background: rgba(212, 175, 55, 0.1);
-}
+.emoji-fly { position: absolute; font-size: 30px; animation: flyOut 0.8s forwards; }
+@keyframes flyOut { 100% { transform: translate(var(--x), var(--y)) scale(0.5); opacity: 0; } }
 
-/* Эмодзи взрыв */
-.emoji-fly {
-    position: absolute;
-    pointer-events: none;
-    font-size: 30px;
-    animation: flyOut 0.8s ease-out forwards;
-    z-index: 100;
-}
-
-@keyframes flyOut {
-    0% { transform: translate(0, 0) scale(1); opacity: 1; }
-    100% { transform: translate(var(--x), var(--y)) scale(0.5); opacity: 0; }
-}
-
-/* ОКНО ТЕМНОЕ (Overlay) */
+/* ОКНО */
 .overlay {
     position: fixed;
     inset: 0;
@@ -117,64 +60,37 @@ body {
 .overlay-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     padding: 50px 20px 20px;
     border-bottom: 1px solid var(--gold);
 }
 
-.title-gold {
-    color: var(--gold);
-    font-style: italic;
-    font-size: 22px;
-}
-
-.nav-btn {
-    background: none;
-    border: 1px solid var(--gold);
-    color: var(--gold);
-    padding: 6px 12px;
-    font-size: 10px;
-    text-transform: uppercase;
-    cursor: pointer;
-}
-
 .overlay-body {
     flex: 1;
-    padding: 25px 20px;
+    padding: 20px;
     overflow-y: auto;
-    font-style: italic;
-    color: var(--ivory);
-    font-size: 18px;
-    line-height: 1.6;
+    display: flex;         /* Включаем флекс */
+    flex-direction: column; /* Кнопки строго в колонку */
+    gap: 10px;             /* Отступ между кнопками */
 }
 
-/* Кнопки в Магазине и Районах */
-.menu-btn, .dialog-option {
-    display: block; /* Каждая кнопка на новой строке */
+/* КНОПКИ МАГАЗИНА */
+.menu-btn {
+    display: block;
     width: 100%;
-    padding: 16px;
-    background: #050505;
+    min-height: 60px;      /* Фиксированная высота */
+    background: #080808;
     border: 1px solid #222;
     color: var(--ivory);
-    margin-bottom: 12px; /* Расстояние между кнопками */
-    text-align: center;
+    padding: 15px;
     font-size: 16px;
-    font-style: normal; /* На кнопках текст прямой для читаемости */
-    cursor: pointer;
-    transition: 0.2s;
+    text-align: center;
 }
 
-.menu-btn:active {
-    border-color: var(--gold);
-    color: var(--gold);
-    background: #111;
-}
+.menu-btn:active { border-color: var(--gold); color: var(--gold); }
 
-/* Нижнее меню */
 .bottom-nav {
     position: fixed;
     bottom: 0;
-    left: 0;
     width: 100%;
     height: 80px;
     display: flex;
@@ -184,15 +100,3 @@ body {
     border-top: 1px solid #1a1a1a;
 }
 
-.nav-item {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    opacity: 0.5;
-    transition: 0.3s;
-}
-
-.nav-item:hover {
-    opacity: 1;
-}
