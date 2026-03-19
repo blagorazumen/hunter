@@ -10,22 +10,25 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; color: var(--ivory); font-family: 'Times New Roman', serif; font-style: italic; overflow: hidden; }
         
-        .bg-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('bg.jpg') center center / cover no-repeat; filter: grayscale(100%) brightness(0.2); z-index: 1; transition: 1s; }
+        .bg-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('bg.jpg') center center / cover no-repeat; filter: grayscale(100%) brightness(0.15) contrast(1.2); z-index: 1; transition: 2s; }
         .vignette { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 10%, black 100%); z-index: 2; }
 
-        .screen { position: relative; z-index: 10; height: 100vh; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 40px; animation: fadeIn 0.4s ease; }
+        .screen { position: relative; z-index: 10; height: 100vh; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 30px; animation: fadeIn 0.8s ease; }
         .active { display: flex; }
 
         .title-section { text-align: center; margin-bottom: 50px; }
-        h1 { font-size: 32px; letter-spacing: 10px; text-transform: uppercase; margin: 0; opacity: 0.9; }
-        .subtitle { font-size: 12px; letter-spacing: 6px; opacity: 0.5; text-transform: uppercase; display: block; margin-top: 5px; }
+        h1 { font-size: 34px; letter-spacing: 12px; text-transform: uppercase; margin: 0; opacity: 0.9; font-weight: 300; }
+        .subtitle { font-size: 14px; letter-spacing: 8px; opacity: 0.5; text-transform: uppercase; display: block; margin-top: 5px; }
 
-        .btn-list { width: 100%; max-width: 260px; }
-        .menu-btn { background: transparent; border: none; color: var(--ivory); padding: 18px; width: 100%; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 4px; font-size: 12px; cursor: pointer; opacity: 0.6; transition: 0.3s; border-bottom: 0.5px solid transparent; }
-        .menu-btn:active { opacity: 1; border-bottom: 0.5px solid var(--ivory); }
+        .btn-list { width: 100%; max-width: 280px; }
+        .menu-btn { background: transparent; border: none; color: var(--ivory); padding: 20px; width: 100%; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 4px; font-size: 11px; cursor: pointer; opacity: 0.6; transition: 0.4s; border-bottom: 0.5px solid transparent; }
+        .menu-btn:active { opacity: 1; border-bottom: 0.5px solid var(--ivory); letter-spacing: 6px; }
+
+        /* Стили для текста лора */
+        .story-text { font-size: 19px; line-height: 1.7; text-align: center; margin-bottom: 50px; opacity: 0.9; max-width: 320px; min-height: 150px; display: flex; align-items: center; justify-content: center; }
 
         .footer { position: absolute; bottom: 25px; font-size: 8px; opacity: 0.2; letter-spacing: 3px; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -47,10 +50,7 @@
 </div>
 
 <div id="district-menu" class="screen">
-    <div class="title-section">
-        <h1>РАЙОН</h1>
-        <span class="subtitle">Локация старта</span>
-    </div>
+    <div class="title-section"><h1>РАЙОН</h1></div>
     <div class="btn-list">
         <button class="menu-btn" onclick="selectDistrict('Чиланзар')">Чиланзар</button>
         <button class="menu-btn" onclick="selectDistrict('Юнусабад')">Юнусабад</button>
@@ -60,27 +60,29 @@
 </div>
 
 <div id="char-menu" class="screen">
-    <div class="title-section">
-        <h1>КТО ТЫ?</h1>
-        <span class="subtitle">Архетип</span>
-    </div>
+    <div class="title-section"><h1>КТО ТЫ?</h1></div>
     <div class="btn-list">
         <button class="menu-btn" onclick="selectChar('Vip')">Vip</button>
         <button class="menu-btn" onclick="selectChar('Спортик')">Спортик</button>
         <button class="menu-btn" onclick="selectChar('Альтуха')">Альтуха</button>
         <button class="menu-btn" onclick="selectChar('Тюбик')">Тюбик</button>
-        <button class="menu-btn" onclick="showScreen('district-menu')">Назад</button>
     </div>
+</div>
+
+<div id="game-screen" class="screen">
+    <div id="story-display" class="story-text"></div>
+    <div id="choice-list" class="btn-list"></div>
 </div>
 
 <script>
     let tg = window.Telegram.WebApp;
     tg.expand();
+    tg.headerColor = '#000000';
 
-    let gameState = { 
-        district: localStorage.getItem('district') || '', 
-        role: localStorage.getItem('role') || '', 
-        cash: parseInt(localStorage.getItem('cash')) || 0 
+    let state = {
+        district: '',
+        role: '',
+        cash: 328000
     };
 
     function showScreen(id) {
@@ -90,23 +92,89 @@
     }
 
     function selectDistrict(d) {
-        gameState.district = d;
-        localStorage.setItem('district', d);
+        state.district = d;
         showScreen('char-menu');
     }
 
-    function selectChar(role) {
-        gameState.role = role;
-        gameState.cash = 328000; // Единая сумма для всех
+    function selectChar(r) {
+        state.role = r;
+        if(r === 'Vip') { startVipIntro(); }
+        else { alert("Сценарий в разработке..."); }
+    }
+
+    // --- ЛОР СИСТЕМА ---
+
+    function updateGame(text, choices) {
+        const display = document.getElementById('story-display');
+        const list = document.getElementById('choice-list');
         
-        localStorage.setItem('role', role);
-        localStorage.setItem('cash', gameState.cash);
-        
-        tg.HapticFeedback.notificationOccurred('success');
-        
-        alert(`ПЕРСОНАЖ СОЗДАН.\n\nРоль: ${gameState.role}\nРайон: ${gameState.district}\nБаланс: ${gameState.cash} СУМ`);
-        
-        // Сюда добавим переход к первой игровой сцене
+        display.style.opacity = 0;
+        setTimeout(() => {
+            display.innerHTML = text;
+            display.style.opacity = 1;
+        }, 300);
+
+        list.innerHTML = '';
+        choices.forEach(c => {
+            const b = document.createElement('button');
+            b.className = 'menu-btn';
+            b.innerHTML = c.text;
+            b.onclick = () => {
+                tg.HapticFeedback.impactOccurred('light');
+                c.callback();
+            };
+            list.appendChild(b);
+        });
+    }
+
+    function startVipIntro() {
+        showScreen('game-screen');
+        updateGame(
+            "Ночные катания до добра не доводят...",
+            [{ text: "Открыть глаза", callback: vipStep1 }]
+        );
+    }
+
+    function vipStep1() {
+        updateGame(
+            "В глазах блики, в ушах звон. Пахнет бензином и гарью.",
+            [{ text: "Оглянуться", callback: vipStep2 }]
+        );
+    }
+
+    function vipStep2() {
+        updateGame(
+            "Ты в разбитом авто. Снаружи кричат люди. Дверь заклинило.",
+            [
+                { text: "Продолжить лежать", callback: vipEndStay },
+                { text: "Выйти наружу", callback: vipEndExit }
+            ]
+        );
+    }
+
+    function vipEndStay() {
+        updateGame(
+            "Тебя вытаскивают чужие руки. Ты лежишь на асфальте. Из кармана выпадают деньги. У тебя осталось 328 000 сум.",
+            [{ text: "Прийти в себя", callback: () => showScreen('main-menu') }]
+        );
+    }
+
+    function vipEndExit() {
+        updateGame(
+            "Ты вываливаешься на землю. Твоя тачка догорает. В кулаке зажаты последние 328 000 сум.",
+            [{ text: "Осмотреться", callback: () => showScreen('main-menu') }]
+        );
+    }
+
+    function showStats() {
+        if(!state.role) alert("Досье пусто.");
+        else alert(`ДОСЬЕ\n\nГерой: ${state.role}\nРайон: ${state.district}\nНал: ${state.cash} СУМ`);
+    }
+
+</script>
+
+</body>
+</html>
     }
 
     function showStats() {
