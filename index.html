@@ -10,7 +10,7 @@
         body { margin: 0; background: #000; color: white; font-family: 'Courier New', monospace; overflow: hidden; touch-action: manipulation; }
         canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; transition: filter 3s ease; }
         #ui, #menu, #cutscene, #death-screen { position: absolute; left: 0; width: 100%; height: 100%; text-align: center; z-index: 100; pointer-events: none; }
-        #ui { top: 20px; height: auto; font-size: 28px; display: none; color: #ff00ff; text-shadow: 2px 2px #000; }
+        #ui { top: 20px; height: auto; font-size: 22px; display: none; color: #ff00ff; text-shadow: 2px 2px #000; display: flex; justify-content: space-around; width: 100%; }
         .overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; background: rgba(0,0,0,0.8); overflow-y: auto; }
         h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 20px; }
         #death-screen { display: none; }
@@ -23,10 +23,14 @@
         button { background: #ff00ff; border: none; padding: 15px 40px; color: white; font-size: 18px; border-radius: 12px; cursor: pointer; box-shadow: 0 6px #990099; font-weight: bold; pointer-events: auto; margin: 10px; width: 250px;}
         button:active { transform: translateY(3px); box-shadow: 0 2px #990099; }
         .btn-free { background: #00ffff; box-shadow: 0 6px #009999; color: #000; }
+        .pill-ui { color: #ffff00; }
     </style>
 </head>
 <body>
-    <div id="ui">SCORE: <span id="score">0</span></div>
+    <div id="ui">
+        <div>SCORE: <span id="score">0</span></div>
+        <div class="pill-ui">PILLS: <span id="pills-count">0</span></div>
+    </div>
     <div id="menu" class="overlay">
         <h1>КСЮШАЧКА^</h1>
         <button onclick="startGame('STORY')">СЮЖЕТ</button>
@@ -50,7 +54,6 @@
 <script>
 // --- КОНФИГ SUPABASE ---
 const SUPABASE_URL = 'https://rfjruwbeiaahegzmowcc.supabase.co';
-// Исправил: теперь ключ начинается с маленькой 'e'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmanJ1d2JlaWFhaGVnem1vd2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDMyMjgsImV4cCI6MjA4OTUxOTIyOH0.59jjm9JpMy3m8oZXTfomS4PuTYjDgTfZiSfhCNksPt8'; 
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -60,28 +63,30 @@ tg.expand();
 const playerName = tg.initDataUnsafe?.user?.username || tg.initDataUnsafe?.user?.first_name || "Анонимный Скуф";
 
 // --- ЛОГИКА БАЗЫ ---
-async function saveScore(s) {
-    const { error } = await _supabase.from('records').insert([{ username: playerName, score: s }]);
-    if (error) {
-        console.error("Ошибка сохранения:", error.message);
+async function saveProgress(s, p) {
+    // Ищем, есть ли уже такой игрок
+    const { data } = await _supabase.from('records').select('*').eq('username', playerName).single();
+    
+    if (data) {
+        // Если игрок есть, обновляем рекорд (если новый больше) и плюсуем пилсы
+        const newScore = Math.max(data.score, s);
+        const newPills = (data.pills || 0) + p;
+        await _supabase.from('records').update({ score: newScore, pills: newPills }).eq('username', playerName);
     } else {
-        loadLeaderboard();
+        // Если игрока нет, создаем новую запись
+        await _supabase.from('records').insert([{ username: playerName, score: s, pills: p }]);
     }
+    loadLeaderboard();
 }
 
 async function loadLeaderboard() {
     const list = document.getElementById('leader-list');
     const { data, error } = await _supabase.from('records').select('*').order('score', { ascending: false }).limit(10);
-    
-    if (error) {
-        list.innerHTML = "<div style='color:#ff4444'>Ошибка: " + error.message + "</div>";
-        return;
-    }
-
+    if (error) { list.innerHTML = "Ошибка базы"; return; }
     if (data && data.length > 0) {
-        list.innerHTML = data.map((p, i) => `<div class="leader-item"><span>${i+1}. ${p.username}</span><span>${p.score}</span></div>`).join('');
+        list.innerHTML = data.map((p, i) => `<div class="leader-item"><span>${i+1}. ${p.username}</span><span>${p.score} (💊${p.pills || 0})</span></div>`).join('');
     } else {
-        list.innerHTML = "<div style='opacity:0.5'>Таблица пока пуста...</div>";
+        list.innerHTML = "Таблица пока пуста...";
     }
 }
 loadLeaderboard();
@@ -94,27 +99,27 @@ const deathMsg = document.getElementById('death-msg');
 const cutsceneDiv = document.getElementById('cutscene');
 const cutsceneImg = document.getElementById('cutscene-img');
 
-const imgs = { bg: new Image(), beer: new Image(), jump: new Image(), run: [new Image(), new Image(), new Image()], house: new Image() };
-imgs.bg.src = 'bg.png'; imgs.beer.src = 'beer.png'; imgs.jump.src = 'jump.png';
+const imgs = { bg: new Image(), beer: new Image(), pills: new Image(), jump: new Image(), run: [new Image(), new Image(), new Image()], house: new Image() };
+imgs.bg.src = 'bg.png'; imgs.beer.src = 'beer.png'; imgs.pills.src = 'pills.png'; imgs.jump.src = 'jump.png';
 imgs.run[0].src = 'run_1.png'; imgs.run[1].src = 'run_2.png'; imgs.run[2].src = 'run_3.png';
 imgs.house.src = 'house.png';
 
 const slides = ['end_1.jpg', 'end_2.jpg', 'end_3.jpg', 'end_4.jpg', 'end_5.jpg'];
 const phrases = ["АНДЕГРАУНД ПАЛЮБОМУ", "ЧИЛАНЗАРСКИЕ ДВОРИКИ ЖДУТ", "ТЫ ЖЕ ПИТЬ БРОСИЛА", "КИБРАЙ ОКАЗАЛСЯ СИЛЬНЕЕ", "ЭТО ТЕБЕ НЕ ВПИСКА", "ПЕРЕБРАЛА?"];
 
-let currentSlide = 0, gameState = 'MENU', score = 0, gameSpeed = 7.2, houseX = -5000, gameMode = 'STORY';
-
+let currentSlide = 0, gameState = 'MENU', score = 0, pillsSession = 0, gameSpeed = 7.2, houseX = -5000, gameMode = 'STORY';
 canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 const groundY = canvas.height - (canvas.height / 3.5);
 
 const player = { x: 50, y: groundY - 110, w: 90, h: 110, dy: 0, jf: 17.5, g: 0.75, grounded: false, frame: 0, tick: 0 };
 let obstacles = [];
+let collectables = [];
 
 function startGame(mode) {
     gameMode = mode;
     gameState = 'PLAYING';
     document.getElementById('menu').style.display = 'none';
-    document.getElementById('ui').style.display = 'block';
+    document.getElementById('ui').style.display = 'flex';
 }
 
 function update() {
@@ -125,7 +130,6 @@ function update() {
     if (player.grounded) { player.tick++; if (player.tick % 7 === 0) player.frame = (player.frame + 1) % 3; }
 
     if (gameMode === 'STORY' && score >= 28 && houseX < -1000) houseX = canvas.width;
-    
     if (houseX > -1000) {
         houseX -= gameSpeed;
         if (player.x + player.w > houseX + 100) {
@@ -135,21 +139,37 @@ function update() {
         }
     }
 
+    // Препятствия (Пиво)
     for (let i = obstacles.length - 1; i >= 0; i--) {
         obstacles[i].x -= gameSpeed;
         let o = obstacles[i];
         if (player.x + 35 < o.x + o.w && player.x + player.w - 35 > o.x && player.y + 10 < o.y + o.h && player.y + player.h > o.y + 10) {
             gameState = 'DEAD';
-            if(gameMode === 'FREE') saveScore(score); 
+            if(gameMode === 'FREE') saveProgress(score, pillsSession); 
             deathMsg.innerText = phrases[Math.floor(Math.random() * phrases.length)];
             deathScreen.style.display = 'flex';
         }
         if (o.x + o.w < 0) { obstacles.splice(i, 1); score++; document.getElementById('score').innerText = score; }
     }
 
-    let spawnChance = gameMode === 'FREE' ? 0.04 + (score * 0.0005) : 0.04; 
-    if ((gameMode === 'FREE' || score < 28) && Math.random() < spawnChance && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 300)) {
+    // Предметы (Пилсы)
+    for (let i = collectables.length - 1; i >= 0; i--) {
+        collectables[i].x -= gameSpeed;
+        let c = collectables[i];
+        if (player.x < c.x + c.w && player.x + player.w > c.x && player.y < c.y + c.h && player.y + player.h > c.y) {
+            pillsSession++;
+            document.getElementById('pills-count').innerText = pillsSession;
+            collectables.splice(i, 1);
+        } else if (c.x + c.w < 0) collectables.splice(i, 1);
+    }
+
+    // Спавн пива
+    if ((gameMode === 'FREE' || score < 28) && Math.random() < 0.04 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 300)) {
         obstacles.push({ x: canvas.width, y: groundY - 75, w: 45, h: 75 });
+    }
+    // Спавн пилсов (реже)
+    if (Math.random() < 0.01 && (collectables.length === 0 || collectables[collectables.length-1].x < canvas.width - 500)) {
+        collectables.push({ x: canvas.width, y: groundY - 140, w: 40, h: 40 });
     }
 }
 
@@ -159,6 +179,7 @@ function draw() {
     if (gameState === 'PLAYING' || gameState === 'WAIT_FINALE') {
         if (houseX > -1000) ctx.drawImage(imgs.house, houseX, groundY - 320, 320, 320);
         obstacles.forEach(o => ctx.drawImage(imgs.beer, o.x, o.y, o.w, o.h));
+        collectables.forEach(c => ctx.drawImage(imgs.pills, c.x, c.y, c.w, c.h));
         const cur = player.grounded ? imgs.run[player.frame] : imgs.jump;
         ctx.drawImage(cur, player.x, player.y, player.w, player.h);
     }
