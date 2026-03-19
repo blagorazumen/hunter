@@ -62,3 +62,11 @@ body.character-sportik { background: url('sport-bg.jpg') center center / cover n
 .overlay-content { width: 80%; text-align: center; }
 .close-overlay { position: absolute; top: 30px; right: 30px; background: none; border: none; color: var(--ivory); font-size: 24px; }
 
+.shop-nav-grid { display: flex; flex-direction: column; gap: 15px; margin-top: 30px; }
+.shop-btn { 
+    background: none; border: 0.5px solid var(--ivory); color: var(--ivory); 
+    padding: 20px; text-transform: uppercase; letter-spacing: 3px; font-size: 12px;
+    cursor: pointer; opacity: 0.8;
+}
+.shop-btn:active { opacity: 1; background: rgba(253,245,230,0.1); }
+.char-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
