@@ -2,8 +2,7 @@ const DB = {
     tasks: [
         {
             id: "cigarettes",
-            name: "Сигаретные точки",
-            image: "sigy.png",
+            name: "Сигаретные апаюшки",
             districts: {
                 "D": { name: "Сергели", price: 1000000, income: 17, count: 0, multiplier: 0.5 },
                 "C": { name: "Яшнабад", price: 5000000, income: 100, count: 0, multiplier: 1 },
@@ -14,4 +13,3 @@ const DB = {
         }
     ]
 };
-
