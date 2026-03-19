@@ -8,394 +8,193 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
         body {
-            background: #000;
-            color: white;
-            font-family: 'Courier New', monospace;
-            overflow: hidden;
-            touch-action: manipulation;
-            user-select: none;
-            -webkit-user-select: none;
+            background: #000; color: white; font-family: 'Courier New', monospace;
+            overflow: hidden; touch-action: manipulation; user-select: none; -webkit-user-select: none;
         }
-        
         canvas {
-            display: block;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1;
+            display: block; position: fixed; top: 0; left: 0; z-index: 1;
             transition: filter 0.1s ease, transform 0.1s ease;
         }
-        
-        /* === UI === */
         #ui {
-            position: absolute;
-            top: env(safe-area-inset-top, 15px);
-            left: 15px;
-            right: 15px;
-            display: none;
-            justify-content: space-between;
-            align-items: flex-start;
-            z-index: 100;
-            pointer-events: none;
-            padding-top: 10px;
+            position: absolute; top: env(safe-area-inset-top, 15px); left: 15px; right: 15px;
+            display: none; justify-content: space-between; align-items: flex-start;
+            z-index: 100; pointer-events: none; padding-top: 10px;
         }
-        
         .ui-stats {
-            text-align: left;
-            font-size: clamp(18px, 4vmin, 24px);
-            color: #ff00ff;
-            text-shadow: 2px 2px #000;
-            font-weight: bold;            pointer-events: none;
+            text-align: left; font-size: clamp(18px, 4vmin, 24px);
+            color: #ff00ff; text-shadow: 2px 2px #000; font-weight: bold; pointer-events: none;
         }
-        
         .ui-stats div { margin-bottom: 5px; }
         .pill-text { color: #ffff00 !important; }
         .score-text { color: #00ffff !important; }
-        
         .ui-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            pointer-events: auto;
-            align-items: flex-end;
+            display: flex; flex-direction: column; gap: 8px;
+            pointer-events: auto; align-items: flex-end;
         }
-        
         .btn-action {
             background: linear-gradient(145deg, #ff00ff, #cc00cc);
-            border: 2px solid #ff00ff;
-            padding: 10px 14px;
-            color: white;
-            font-size: clamp(12px, 3vmin, 14px);
-            border-radius: 10px;
-            cursor: pointer;
+            border: 2px solid #ff00ff; padding: 10px 14px; color: white;
+            font-size: clamp(12px, 3vmin, 14px); border-radius: 10px; cursor: pointer;
             box-shadow: 0 4px #990099, 0 0 15px rgba(255, 0, 255, 0.5);
-            font-weight: bold;
-            min-width: 140px;
-            transition: all 0.1s ease;
-            position: relative;
-            overflow: hidden;
+            font-weight: bold; min-width: 140px; transition: all 0.1s ease;
+            position: relative; overflow: hidden;
         }
-        
-        .btn-action:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px #990099;
-        }
-        
-        .btn-action:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
+        .btn-action:active { transform: translateY(2px); box-shadow: 0 2px #990099; }
+        .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-buy {
             background: linear-gradient(145deg, #00ffff, #00cccc);
-            border-color: #00ffff;
-            box-shadow: 0 4px #009999, 0 0 15px rgba(0, 255, 255, 0.5);
+            border-color: #00ffff; box-shadow: 0 4px #009999, 0 0 15px rgba(0, 255, 255, 0.5);
             color: #000;
         }
-        
-        .btn-boost-active {
-            animation: pulse-boost 0.5s infinite;        }
-        
-        @keyframes pulse-boost {
+        .btn-boost-active { animation: pulse-boost 0.5s infinite; }        @keyframes pulse-boost {
             0%, 100% { box-shadow: 0 4px #990099, 0 0 20px rgba(255, 0, 255, 0.8); }
             50% { box-shadow: 0 4px #990099, 0 0 30px rgba(255, 0, 255, 1); }
         }
-        
-        /* Полоска таймера буста */
         .boost-timer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 4px;
-            background: #00ffff;
-            width: 0%;
-            transition: width 0.1s linear;
+            position: absolute; bottom: 0; left: 0; height: 4px;
+            background: #00ffff; width: 0%; transition: width 0.1s linear;
         }
-        
-        /* Кнопка паузы */
         .btn-pause {
-            position: absolute;
-            top: env(safe-area-inset-top, 15px);
-            right: 15px;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: rgba(255, 0, 255, 0.3);
-            border: 2px solid #ff00ff;
-            color: white;
-            font-size: 20px;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 101;
-            pointer-events: auto;
-            backdrop-filter: blur(5px);
+            position: absolute; top: env(safe-area-inset-top, 15px); right: 15px;
+            width: 44px; height: 44px; border-radius: 50%;
+            background: rgba(255, 0, 255, 0.3); border: 2px solid #ff00ff;
+            color: white; font-size: 20px; display: none;
+            justify-content: center; align-items: center; cursor: pointer;
+            z-index: 101; pointer-events: auto; backdrop-filter: blur(5px);
         }
-        
-        /* === Оверлеи === */
         #menu, #cutscene, #death-screen, #pause-screen {
-            position: absolute;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            z-index: 200;
-            pointer-events: none;
+            position: absolute; left: 0; width: 100%; height: 100%;
+            text-align: center; z-index: 200; pointer-events: none;
         }
-                .overlay {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            pointer-events: auto;
-            background: rgba(0, 0, 0, 0.85);
-            overflow-y: auto;
-            padding: 20px;
-            backdrop-filter: blur(10px);
+        .overlay {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; pointer-events: auto;
+            background: rgba(0, 0, 0, 0.85); overflow-y: auto;
+            padding: 20px; backdrop-filter: blur(10px);
         }
-        
         h1 {
-            color: #ff00ff;
-            font-size: clamp(32px, 8vmin, 42px);
+            color: #ff00ff; font-size: clamp(32px, 8vmin, 42px);
             text-shadow: 3px 3px #000, 0 0 20px rgba(255, 0, 255, 0.5);
-            margin-bottom: 20px;
-            animation: glow 2s ease-in-out infinite;
+            margin-bottom: 20px; animation: glow 2s ease-in-out infinite;
         }
-        
         @keyframes glow {
             0%, 100% { text-shadow: 3px 3px #000, 0 0 20px rgba(255, 0, 255, 0.5); }
             50% { text-shadow: 3px 3px #000, 0 0 30px rgba(255, 0, 255, 0.8); }
         }
-        
         .menu-btn {
             background: linear-gradient(145deg, #ff00ff, #cc00cc);
-            border: 2px solid #ff00ff;
-            padding: clamp(12px, 3vmin, 15px) clamp(30px, 6vmin, 40px);
-            color: white;
-            font-size: clamp(16px, 4vmin, 18px);
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 6px #990099, 0 0 15px rgba(255, 0, 255, 0.5);
-            font-weight: bold;
-            pointer-events: auto;
-            margin: 10px;
-            width: min(250px, 80%);
-            transition: all 0.1s ease;
+            border: 2px solid #ff00ff; padding: clamp(12px, 3vmin, 15px) clamp(30px, 6vmin, 40px);
+            color: white; font-size: clamp(16px, 4vmin, 18px); border-radius: 12px;
+            cursor: pointer; box-shadow: 0 6px #990099, 0 0 15px rgba(255, 0, 255, 0.5);
+            font-weight: bold; pointer-events: auto; margin: 10px;
+            width: min(250px, 80%); transition: all 0.1s ease;
         }
-        
-        .menu-btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 2px #990099;
-        }
-        
+        .menu-btn:active { transform: translateY(3px); box-shadow: 0 2px #990099; }
         .btn-free {
             background: linear-gradient(145deg, #00ffff, #00cccc);
-            border-color: #00ffff;
-            box-shadow: 0 6px #009999, 0 0 15px rgba(0, 255, 255, 0.5);            color: #000;
-        }
-        
-        .btn-daily {
-            background: linear-gradient(145deg, #ffff00, #cccc00);
-            border-color: #ffff00;
-            box-shadow: 0 6px #999900, 0 0 15px rgba(255, 255, 0, 0.5);
+            border-color: #00ffff; box-shadow: 0 6px #009999, 0 0 15px rgba(0, 255, 255, 0.5);
             color: #000;
         }
-        
+        .btn-daily {            background: linear-gradient(145deg, #ffff00, #cccc00);
+            border-color: #ffff00; box-shadow: 0 6px #999900, 0 0 15px rgba(255, 255, 0, 0.5);
+            color: #000;
+        }
         #death-screen, #pause-screen { display: none; }
-        
         #death-msg {
-            color: #00ffff;
-            font-size: clamp(18px, 4vmin, 24px);
-            font-weight: bold;
-            margin-bottom: 30px;
-            text-shadow: 2px 2px #ff00ff;
+            color: #00ffff; font-size: clamp(18px, 4vmin, 24px);
+            font-weight: bold; margin-bottom: 30px; text-shadow: 2px 2px #ff00ff;
         }
-        
         #leaderboard {
-            margin-top: 20px;
-            width: min(85%, 400px);
-            background: rgba(255, 0, 255, 0.1);
-            border: 1px solid #ff00ff;
-            border-radius: 10px;
-            padding: 15px;
-            font-size: clamp(12px, 3vmin, 14px);
-            max-height: 30vh;
-            overflow-y: auto;
+            margin-top: 20px; width: min(85%, 400px);
+            background: rgba(255, 0, 255, 0.1); border: 1px solid #ff00ff;
+            border-radius: 10px; padding: 15px;
+            font-size: clamp(12px, 3vmin, 14px); max-height: 30vh; overflow-y: auto;
         }
-        
         .leader-item {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px dashed #444;
-            padding: 8px 0;
+            display: flex; justify-content: space-between;
+            border-bottom: 1px dashed #444; padding: 8px 0;
         }
-        
         .leader-item:last-child { border-bottom: none; }
-        
-        /* === Cutscene === */
         #cutscene {
-            display: none;
-            background: #000;
-            pointer-events: auto;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;            height: 100%;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 300;
+            display: none; background: #000; pointer-events: auto;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            flex-direction: column; justify-content: center; align-items: center; z-index: 300;
         }
-        
         #cutscene img {
-            max-width: 100%;
-            max-height: 80vh;
-            opacity: 0;
-            transition: opacity 1s ease-in-out;
-            border: 3px solid #ff00ff;
-            border-radius: 10px;
-            box-shadow: 0 0 30px rgba(255, 0, 255, 0.5);
+            max-width: 100%; max-height: 80vh; opacity: 0;
+            transition: opacity 1s ease-in-out; border: 3px solid #ff00ff;
+            border-radius: 10px; box-shadow: 0 0 30px rgba(255, 0, 255, 0.5);
         }
-        
         #cutscene img.show { opacity: 1; }
-        
-        /* === Подсказка === */
         #tutorial-hint {
-            position: absolute;
-            bottom: 20%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00ffff;
-            padding: 15px 25px;
-            border-radius: 15px;
-            color: #00ffff;
-            font-size: clamp(14px, 3.5vmin, 18px);
-            font-weight: bold;
-            z-index: 150;
-            pointer-events: none;
-            display: none;
-            animation: bounce 1s infinite;
-            text-align: center;
+            position: absolute; bottom: 20%; left: 50%;
+            transform: translateX(-50%); background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff; padding: 15px 25px; border-radius: 15px;
+            color: #00ffff; font-size: clamp(14px, 3.5vmin, 18px);
+            font-weight: bold; z-index: 150; pointer-events: none;
+            display: none; animation: bounce 1s infinite; text-align: center;
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
         }
-        
         @keyframes bounce {
             0%, 100% { transform: translateX(-50%) translateY(0); }
             50% { transform: translateX(-50%) translateY(-10px); }
         }
-        
-        /* === Всплывающий текст +1 💊 === */
         .float-text {
-            position: absolute;
-            color: #ffff00;
-            font-size: clamp(16px, 4vmin, 22px);            font-weight: bold;
-            pointer-events: none;
-            z-index: 150;
-            text-shadow: 2px 2px #000;
+            position: absolute; color: #ffff00;
+            font-size: clamp(16px, 4vmin, 22px); font-weight: bold;
+            pointer-events: none; z-index: 150; text-shadow: 2px 2px #000;
             animation: float-up 1s ease-out forwards;
-        }
-        
-        @keyframes float-up {
+        }        @keyframes float-up {
             0% { opacity: 1; transform: translateY(0) scale(1); }
             100% { opacity: 0; transform: translateY(-50px) scale(1.2); }
         }
-        
-        /* === Индикатор нового рекорда === */
         #new-record {
-            position: absolute;
-            top: 30%;
-            left: 50%;
+            position: absolute; top: 30%; left: 50%;
             transform: translateX(-50%);
             background: linear-gradient(145deg, #ffff00, #cccc00);
-            color: #000;
-            padding: 15px 30px;
-            border-radius: 15px;
-            font-size: clamp(18px, 4vmin, 24px);
-            font-weight: bold;
-            z-index: 150;
-            pointer-events: none;
-            display: none;
+            color: #000; padding: 15px 30px; border-radius: 15px;
+            font-size: clamp(18px, 4vmin, 24px); font-weight: bold;
+            z-index: 150; pointer-events: none; display: none;
             animation: record-pop 0.5s ease-out;
             box-shadow: 0 0 30px rgba(255, 255, 0, 0.8);
         }
-        
         @keyframes record-pop {
             0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
             50% { transform: translateX(-50%) scale(1.1); }
             100% { transform: translateX(-50%) scale(1); opacity: 1; }
         }
-        
-        /* === Настройки в меню === */
         .settings-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: min(80%, 300px);
-            margin: 10px 0;
-            padding: 10px;
-            background: rgba(255, 0, 255, 0.1);
-            border-radius: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+            width: min(80%, 300px); margin: 10px 0; padding: 10px;
+            background: rgba(255, 0, 255, 0.1); border-radius: 8px;
         }
-        
-        .toggle-btn {            background: #333;
-            border: 2px solid #666;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
+        .toggle-btn {
+            background: #333; border: 2px solid #666; color: white;
+            padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 14px;
         }
-        
-        .toggle-btn.active {
-            background: #00ffff;
-            border-color: #00ffff;
-            color: #000;
-        }
-        
-        /* === Профиль игрока === */
+        .toggle-btn.active { background: #00ffff; border-color: #00ffff; color: #000; }
         .player-profile {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            padding: 10px 15px;
-            background: rgba(0, 255, 255, 0.1);
-            border-radius: 10px;
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 15px; padding: 10px 15px;
+            background: rgba(0, 255, 255, 0.1); border-radius: 10px;
             border: 1px solid #00ffff;
         }
-        
         .player-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            width: 40px; height: 40px; border-radius: 50%;
             background: linear-gradient(145deg, #ff00ff, #00ffff);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: bold;
         }
-        
         .player-info { text-align: left; }
         .player-name { color: #00ffff; font-weight: bold; font-size: 14px; }
         .player-best { color: #ff00ff; font-size: 12px; }
-        
-        /* === Cloud save статус === */
-        .save-status {
-            font-size: 11px;
-            color: #666;
-            margin-top: 5px;
-        }
-        .save-status.synced { color: #00ff00; }        .save-status.pending { color: #ffff00; }
+        .save-status { font-size: 11px; color: #666; margin-top: 5px; }
+        .save-status.synced { color: #00ff00; }
+        .save-status.pending { color: #ffff00; }
         .save-status.error { color: #ff0000; }
     </style>
-</head>
-<body>
-    <!-- UI во время игры -->
+</head><body>
     <div id="ui">
         <div class="ui-stats">
             <div class="score-text">🏆 SCORE: <span id="score">0</span></div>
@@ -411,19 +210,12 @@
         </div>
     </div>
     
-    <!-- Кнопка паузы -->
     <button id="pause-btn" class="btn-pause" onclick="togglePause()">⏸️</button>
-    
-    <!-- Подсказка для новичков -->
     <div id="tutorial-hint">👆 ТАПНИ ЧТОБЫ ПРЫГНУТЬ 👆</div>
-    
-    <!-- Индикатор нового рекорда -->
     <div id="new-record">🔥 НОВЫЙ РЕКОРД! 🔥</div>
     
-    <!-- Главное меню -->
     <div id="menu" class="overlay">
         <h1>✨ КСЮШАЧКА^ ✨</h1>
-        
         <div class="player-profile">
             <div class="player-avatar" id="player-avatar">👤</div>
             <div class="player-info">
@@ -431,46 +223,31 @@
                 <div class="player-best">🏆 Лучший: <span id="best-score">0</span></div>
             </div>
         </div>
-        
         <button class="menu-btn" onclick="startGame('STORY')">📖 СЮЖЕТ</button>
         <button class="menu-btn btn-free" onclick="startGame('FREE')">🎮 СВОБОДНЫЙ ЗАБЕГ</button>
         <button class="menu-btn btn-daily" id="daily-btn" onclick="claimDailyBonus()">🎁 ЕЖЕДНЕВНЫЙ БОНУС</button>
-        
-        <div class="settings-row">
-            <span>🔊 Звук</span>
-            <button class="toggle-btn" id="sound-toggle" onclick="toggleSound()">ВЫКЛ</button>
-        </div>        <div class="settings-row">
-            <span>📳 Вибрация</span>
-            <button class="toggle-btn active" id="haptic-toggle" onclick="toggleHaptic()">ВКЛ</button>
-        </div>
-        
+        <div class="settings-row"><span>🔊 Звук</span><button class="toggle-btn" id="sound-toggle" onclick="toggleSound()">ВЫКЛ</button></div>
+        <div class="settings-row"><span>📳 Вибрация</span><button class="toggle-btn active" id="haptic-toggle" onclick="toggleHaptic()">ВКЛ</button></div>
         <div id="leaderboard">
             <div style="font-weight:bold; color:#00ffff; margin-bottom:10px;">🏅 ТОП-10:</div>
             <div id="leader-list">Синхронизация...</div>
         </div>
-        
         <div class="save-status" id="menu-save-status"></div>
     </div>
 
-    <!-- Экран смерти -->
     <div id="death-screen" class="overlay">
         <h1>💀 ППЦ;)</h1>
         <div id="death-msg"></div>
-        <div style="margin-bottom: 20px; color: #ffff00;">
-            Счёт: <span id="final-score" style="font-size: 24px;">0</span>
-        </div>
+        <div style="margin-bottom: 20px; color: #ffff00;">Счёт: <span id="final-score" style="font-size: 24px;">0</span></div>
         <button class="menu-btn" onclick="returnToMenu()">🏠 В МЕНЮ</button>
         <button class="menu-btn btn-free" onclick="shareScore()">📤 ПОДЕЛИТЬСЯ</button>
     </div>
     
-    <!-- Экран паузы -->
-    <div id="pause-screen" class="overlay">
-        <h1>⏸️ ПАУЗА</h1>
+    <div id="pause-screen" class="overlay">        <h1>⏸️ ПАУЗА</h1>
         <button class="menu-btn" onclick="togglePause()">▶️ ПРОДОЛЖИТЬ</button>
         <button class="menu-btn btn-free" onclick="returnToMenu()">🏠 В МЕНЮ</button>
     </div>
 
-    <!-- Катсцена -->
     <div id="cutscene">
         <img id="cutscene-img" src="" alt="Финал">
         <button id="next-btn" class="menu-btn" style="margin-top:20px;">ДАЛЕЕ ➡️</button>
@@ -479,7 +256,7 @@
     <canvas id="game"></canvas>
 
 <script>
-// === КОНФИГ SUPABASE (НЕ МЕНЯТЬ) ===
+// === КОНФИГ SUPABASE ===
 const SUPABASE_URL = 'https://rfjruwbeiaahegzmowcc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmanJ1d2JlaWFhaGVnem1vd2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDMyMjgsImV4cCI6MjA4OTUxOTIyOH0.59jjm9JpMy3m8oZXTfomS4PuTYjDgTfZiSfhCNksPt8'; 
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -488,34 +265,18 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
-// Получение данных пользователя
-const playerName = tg.initDataUnsafe?.user?.username 
-    || tg.initDataUnsafe?.user?.first_name 
-    || "АнонимныйСкуф";
+const playerName = tg.initDataUnsafe?.user?.username || tg.initDataUnsafe?.user?.first_name || "АнонимныйСкуф";
 const playerAvatar = tg.initDataUnsafe?.user?.photo_url || null;
 
-// === НАСТРОЙКИ (localStorage) ===
-let settings = {
-    sound: false,
-    haptic: true,
-    tutorialShown: false,
-    lastDailyBonus: 0
-};
+// === НАСТРОЙКИ ===
+let settings = { sound: false, haptic: true, tutorialShown: false, lastDailyBonus: 0 };
 
-// Загрузка настроек
 function loadSettings() {
     const saved = localStorage.getItem('ksshashka_settings');
-    if (saved) {
-        settings = { ...settings, ...JSON.parse(saved) };
-    }
+    if (saved) settings = { ...settings, ...JSON.parse(saved) };
     updateSettingsUI();
 }
-
-// Сохранение настроек
-function saveSettings() {
-    localStorage.setItem('ksshashka_settings', JSON.stringify(settings));
-}
-
+function saveSettings() { localStorage.setItem('ksshashka_settings', JSON.stringify(settings)); }
 function updateSettingsUI() {
     document.getElementById('sound-toggle').classList.toggle('active', settings.sound);
     document.getElementById('sound-toggle').innerText = settings.sound ? 'ВКЛ' : 'ВЫКЛ';
@@ -524,778 +285,269 @@ function updateSettingsUI() {
     updateDailyButton();
 }
 
-// === ИГРОВЫЕ ПЕРЕМЕННЫЕ ===
-let pillsDb = 0;
-let boostsDb = 0;
-let bestScore = 0;
-let gameState = 'MENU';
-let gameMode = 'STORY';
-let score = 0;
-let gameSpeed = 7.2;
-let houseX = -5000;
-let isBoostActive = false;
-let boostFrames = 0;
-let isPaused = false;
-let isNewRecord = false;
-// === HAPTIC FEEDBACK ===
+// === ПЕРЕМЕННЫЕ ===
+let pillsDb = 0, boostsDb = 0, bestScore = 0, gameState = 'MENU', gameMode = 'STORY';
+let score = 0, gameSpeed = 7.2, houseX = -5000, isBoostActive = false, boostFrames = 0;
+let isPaused = false, isNewRecord = false;
+
+// === HAPTIC ===
 function haptic(type = 'light') {
-    if (!settings.haptic) return;
-    
-    if (tg.HapticFeedback) {
-        switch(type) {
-            case 'light': tg.HapticFeedback.impactOccurred('light'); break;
-            case 'medium': tg.HapticFeedback.impactOccurred('medium'); break;
-            case 'heavy': tg.HapticFeedback.impactOccurred('heavy'); break;
-            case 'success': tg.HapticFeedback.notificationOccurred('success'); break;
-            case 'error': tg.HapticFeedback.notificationOccurred('error'); break;
-            case 'warning': tg.HapticFeedback.notificationOccurred('warning'); break;
-        }
+    if (!settings.haptic) return;    if (tg.HapticFeedback) {
+        const map = { light: 'light', medium: 'medium', heavy: 'heavy', success: 'success', error: 'error', warning: 'warning' };
+        if (map[type]) tg.HapticFeedback.impactOccurred(map[type]);
     }
 }
 
-// === ЗАГРУЗКА ДАННЫХ ИЗ БД ===
+// === БД ===
 async function fetchUserData() {
     updateSaveStatus('menu-save-status', 'pending', '⏳ Загрузка...');
-    
     try {
-        const { data, error } = await _supabase
-            .from('records')
-            .select('*')
-            .eq('username', playerName)
-            .single();
-        
-        if (error && error.code !== 'PGRST116') {
-            throw error;
-        }
-        
+        const { data, error } = await _supabase.from('records').select('*').eq('username', playerName).single();
+        if (error && error.code !== 'PGRST116') throw error;
         if (data) {
-            pillsDb = data.pills || 0;
-            boostsDb = data.speed || 0;
-            bestScore = data.score || 0;
-            
+            pillsDb = data.pills || 0; boostsDb = data.speed || 0; bestScore = data.score || 0;
             document.getElementById('pills-count').innerText = pillsDb;
             document.getElementById('boost-count').innerText = boostsDb;
             document.getElementById('best-score').innerText = bestScore;
-            
             updateSaveStatus('menu-save-status', 'synced', '✓ Синхронизировано');
-        } else {
-            updateSaveStatus('menu-save-status', 'synced', '✓ Новый игрок');
-        }
-    } catch (e) {
-        console.error('Ошибка загрузки:', e);
-        updateSaveStatus('menu-save-status', 'error', '⚠ Ошибка БД');
-    }
+        } else updateSaveStatus('menu-save-status', 'synced', '✓ Новый игрок');
+    } catch (e) { console.error(e); updateSaveStatus('menu-save-status', 'error', '⚠ Ошибка БД'); }
 }
-// === БЫСТРОЕ СОХРАНЕНИЕ ===
+
 async function quickSave() {
     updateSaveStatus('cloud-status', 'pending', '☁️...');
-    
     try {
-        const { data } = await _supabase
-            .from('records')
-            .select('*')
-            .eq('username', playerName)
-            .single();
-        
+        const { data } = await _supabase.from('records').select('*').eq('username', playerName).single();
         if (data) {
-            await _supabase
-                .from('records')
-                .update({ 
-                    pills: pillsDb, 
-                    speed: boostsDb,
-                    score: Math.max(data.score, bestScore)
-                })
-                .eq('username', playerName);
+            await _supabase.from('records').update({ pills: pillsDb, speed: boostsDb, score: Math.max(data.score, bestScore) }).eq('username', playerName);
         } else {
-            await _supabase
-                .from('records')
-                .insert([{ 
-                    username: playerName, 
-                    score: bestScore, 
-                    pills: pillsDb, 
-                    speed: boostsDb 
-                }]);
+            await _supabase.from('records').insert([{ username: playerName, score: bestScore, pills: pillsDb, speed: boostsDb }]);
         }
-        
         updateSaveStatus('cloud-status', 'synced', '☁️✓');
         updateSaveStatus('menu-save-status', 'synced', '✓ Сохранено');
-    } catch (e) {
-        console.error('Ошибка сохранения:', e);
-        updateSaveStatus('cloud-status', 'error', '☁️⚠');
-    }
+    } catch (e) { console.error(e); updateSaveStatus('cloud-status', 'error', '☁️⚠'); }
 }
 
-// === СОХРАНЕНИЕ ПРИ СМЕРТИ ===
 async function saveProgress(s) {
-    if (s > bestScore) {
-        isNewRecord = true;
-        bestScore = s;
-        document.getElementById('best-score').innerText = bestScore;
-        showNewRecord();
-    }
-    
+    if (s > bestScore) { isNewRecord = true; bestScore = s; document.getElementById('best-score').innerText = bestScore; showNewRecord(); }
     try {
-        const { data } = await _supabase            .from('records')
-            .select('*')
-            .eq('username', playerName)
-            .single();
-        
+        const { data } = await _supabase.from('records').select('*').eq('username', playerName).single();
         if (data) {
-            await _supabase
-                .from('records')
-                .update({ 
-                    score: bestScore, 
-                    pills: pillsDb, 
-                    speed: boostsDb 
-                })
-                .eq('username', playerName);
+            await _supabase.from('records').update({ score: bestScore, pills: pillsDb, speed: boostsDb }).eq('username', playerName);
         } else {
-            await _supabase
-                .from('records')
-                .insert([{ 
-                    username: playerName, 
-                    score: bestScore, 
-                    pills: pillsDb, 
-                    speed: boostsDb 
-                }]);
+            await _supabase.from('records').insert([{ username: playerName, score: bestScore, pills: pillsDb, speed: boostsDb }]);
         }
-        
         loadLeaderboard();
         updateSaveStatus('menu-save-status', 'synced', '✓ Сохранено');
-    } catch (e) {
-        console.error('Ошибка сохранения прогресса:', e);
-    }
+    } catch (e) { console.error(e); }
 }
-
-// === ТАБЛИЦА ЛИДЕРОВ ===
 async function loadLeaderboard() {
     const list = document.getElementById('leader-list');
-    
     try {
-        const { data, error } = await _supabase
-            .from('records')
-            .select('*')
-            .order('score', { ascending: false })
-            .limit(10);
-        
-        if (error) {
-            list.innerHTML = "⚠ Ошибка базы";
-            return;
-        }
-        
-        if (data && data.length > 0) {
-            list.innerHTML = data.map((p, i) => {                const isMe = p.username === playerName ? ' style="color:#ffff00;"' : '';
-                return `<div class="leader-item"${isMe}>
-                    <span>${i+1}. ${p.username.substring(0, 12)}${p.username.length > 12 ? '...' : ''}</span>
-                    <span>${p.score} 💊${p.pills||0} 🚀${p.speed||0}</span>
-                </div>`;
-            }).join('');
-        } else {
-            list.innerHTML = "📭 Таблица пуста...";
-        }
-    } catch (e) {
-        list.innerHTML = "⚠ Ошибка";
-    }
+        const { data, error } = await _supabase.from('records').select('*').order('score', { ascending: false }).limit(10);
+        if (error) { list.innerHTML = "⚠ Ошибка базы"; return; }
+        if (data?.length) {
+            list.innerHTML = data.map((p, i) => `<div class="leader-item"${p.username===playerName?' style="color:#ffff00;"':''}><span>${i+1}. ${p.username.substring(0,12)}${p.username.length>12?'...':''}</span><span>${p.score} 💊${p.pills||0} 🚀${p.speed||0}</span></div>`).join('');
+        } else list.innerHTML = "📭 Таблица пуста...";
+    } catch (e) { list.innerHTML = "⚠ Ошибка"; }
 }
 
 // === ЕЖЕДНЕВНЫЙ БОНУС ===
 function updateDailyButton() {
     const btn = document.getElementById('daily-btn');
-    const now = Date.now();
-    const oneDay = 24 * 60 * 60 * 1000;
-    const canClaim = now - settings.lastDailyBonus >= oneDay;
-    
+    const canClaim = Date.now() - settings.lastDailyBonus >= 24*60*60*1000;
     btn.disabled = !canClaim;
     btn.style.opacity = canClaim ? '1' : '0.5';
     btn.innerText = canClaim ? '🎁 ЕЖЕДНЕВНЫЙ БОНУС (+5💊)' : '🎁 БОНУС УЖЕ ПОЛУЧЕН';
 }
-
 function claimDailyBonus() {
-    const now = Date.now();
-    const oneDay = 24 * 60 * 60 * 1000;
-    
-    if (now - settings.lastDailyBonus >= oneDay) {
-        pillsDb += 5;
-        settings.lastDailyBonus = now;
-        saveSettings();
-        updateSettingsUI();
-        
-        document.getElementById('pills-count').innerText = pillsDb;
-        haptic('success');
-        
-        const btn = document.getElementById('daily-btn');
-        btn.innerText = '✅ ПОЛУЧЕНО!';
-        setTimeout(() => updateDailyButton(), 1500);
-        
-        quickSave();
-    } else {
-        haptic('error');
-    }
+    if (Date.now() - settings.lastDailyBonus >= 24*60*60*1000) {
+        pillsDb += 5; settings.lastDailyBonus = Date.now(); saveSettings(); updateSettingsUI();
+        document.getElementById('pills-count').innerText = pillsDb; haptic('success');
+        const btn = document.getElementById('daily-btn'); btn.innerText = '✅ ПОЛУЧЕНО!';
+        setTimeout(() => updateDailyButton(), 1500); quickSave();
+    } else haptic('error');
 }
 
-// === НАСТРОЙКИ ===function toggleSound() {
-    settings.sound = !settings.sound;
-    saveSettings();
-    updateSettingsUI();
-    haptic('light');
-}
+function toggleSound() { settings.sound = !settings.sound; saveSettings(); updateSettingsUI(); haptic('light'); }
+function toggleHaptic() { settings.haptic = !settings.haptic; saveSettings(); updateSettingsUI(); haptic('light'); }
+function updateSaveStatus(id, status, text) { const el = document.getElementById(id); if (el) { el.className = 'save-status ' + status; el.innerText = text; } }
 
-function toggleHaptic() {
-    settings.haptic = !settings.haptic;
-    saveSettings();
-    updateSettingsUI();
-    haptic('light');
-}
-
-// === СТАТУС СОХРАНЕНИЯ ===
-function updateSaveStatus(elementId, status, text) {
-    const el = document.getElementById(elementId);
-    if (el) {
-        el.className = 'save-status ' + status;
-        el.innerText = text;
-    }
-}
-
-// === ИГРОВОЙ ДВИЖОК ===
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-
-// Адаптивный размер канваса
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
-
+// === ДВИЖОК ===
+const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resizeCanvas(); window.addEventListener('resize', resizeCanvas);
 const groundY = () => canvas.height - (canvas.height / 3.5);
 
-// Изображения (ПУТИ НЕ МЕНЯТЬ)
-const imgs = {
-    bg: new Image(),
-    beer: new Image(),
-    pills: new Image(),
-    jump: new Image(),
-    run: [new Image(), new Image(), new Image()],
-    house: new Image()
-};
+const imgs = { bg: new Image(), beer: new Image(), pills: new Image(), jump: new Image(), run: [new Image(), new Image(), new Image()], house: new Image() };
+imgs.bg.src = 'bg.png'; imgs.beer.src = 'beer.png'; imgs.pills.src = 'pills.png'; imgs.jump.src = 'jump.png';
+imgs.run[0].src = 'run_1.png'; imgs.run[1].src = 'run_2.png'; imgs.run[2].src = 'run_3.png'; imgs.house.src = 'house.png';
 
-imgs.bg.src = 'bg.png';
-imgs.beer.src = 'beer.png';
-imgs.pills.src = 'pills.png';imgs.jump.src = 'jump.png';
-imgs.run[0].src = 'run_1.png';
-imgs.run[1].src = 'run_2.png';
-imgs.run[2].src = 'run_3.png';
-imgs.house.src = 'house.png';
-
-// Катсцены
-const slides = ['end_1.jpg', 'end_2.jpg', 'end_3.jpg', 'end_4.jpg', 'end_5.jpg'];
-const phrases = [
-    "АНДЕГРАУНД ПАЛЮБОМУ",
-    "ЧИЛАНЗАРСКИЕ ДВОРИКИ ЖДУТ",
-    "ТЫ ЖЕ ПИТЬ БРОСИЛА",
-    "КИБРАЙ ОКАЗАЛСЯ СИЛЬНЕЕ",
-    "ЭТО ТЕБЕ НЕ ВПИСКА",
-    "ПЕРЕБРАЛА?"
-];
-
+const slides = ['end_1.jpg','end_2.jpg','end_3.jpg','end_4.jpg','end_5.jpg'];
+const phrases = ["АНДЕГРАУНД ПАЛЮБОМУ","ЧИЛАНЗАРСКИЕ ДВОРИКИ ЖДУТ","ТЫ ЖЕ ПИТЬ БРОСИЛА","КИБРАЙ ОКАЗАЛСЯ СИЛЬНЕЕ","ЭТО ТЕБЕ НЕ ВПИСКА","ПЕРЕБРАЛА?"];
 let currentSlide = 0;
 
-// Игрок
-const player = {
-    x: 50,
-    y: groundY() - 110,
-    w: 90,
-    h: 110,
-    dy: 0,
-    jf: 17.5,
-    g: 0.75,
-    grounded: false,
-    frame: 0,
-    tick: 0
-};
+const player = { x: 50, y: groundY() - 110, w: 90, h: 110, dy: 0, jf: 17.5, g: 0.75, grounded: false, frame: 0, tick: 0 };
+let obstacles = [], collectables = [], particles = [], floatTexts = [], screenShake = 0;
 
-let obstacles = [];
-let collectables = [];
-let particles = [];
-let floatTexts = [];
-let screenShake = 0;
-
-// === ПОКУПКА И АКТИВАЦИЯ БУСТОВ ===
-function buyBoost() {
-    const btn = document.getElementById('buy-btn');
-    
-    if (pillsDb >= 10) {
-        pillsDb -= 10;
-        boostsDb += 1;
-        document.getElementById('pills-count').innerText = pillsDb;
-        document.getElementById('boost-count').innerText = boostsDb;
-        haptic('success');
-        quickSave();        
-        btn.innerText = "✅ КУПЛЕНО!";
-        setTimeout(() => btn.innerText = "🛒 КУПИТЬ (10💊)", 1000);
-    } else {
-        haptic('error');
-        btn.innerText = "❌ МАЛО 💊!";
-        btn.style.background = "#ff4444";
-        setTimeout(() => {
-            btn.innerText = "🛒 КУПИТЬ (10💊)";
-            btn.style.background = "";
-        }, 1000);
-    }
+function buyBoost() {    const btn = document.getElementById('buy-btn');
+    if (pillsDb >= 10) { pillsDb -= 10; boostsDb += 1; document.getElementById('pills-count').innerText = pillsDb; document.getElementById('boost-count').innerText = boostsDb; haptic('success'); quickSave(); btn.innerText = "✅ КУПЛЕНО!"; setTimeout(() => btn.innerText = "🛒 КУПИТЬ (10💊)", 1000); }
+    else { haptic('error'); btn.innerText = "❌ МАЛО 💊!"; btn.style.background = "#ff4444"; setTimeout(() => { btn.innerText = "🛒 КУПИТЬ (10💊)"; btn.style.background = ""; }, 1000); }
 }
 
 function activateBoost() {
     if (boostsDb > 0 && !isBoostActive && gameState === 'PLAYING' && !isPaused) {
-        boostsDb -= 1;
-        isBoostActive = true;
-        boostFrames = 300; // 5 секунд при 60 FPS
+        boostsDb -= 1; isBoostActive = true; boostFrames = 300;
         document.getElementById('boost-count').innerText = boostsDb;
-        document.getElementById('boost-btn').classList.add('btn-boost-active');
-        haptic('heavy');
-        quickSave();
-    } else if (boostsDb === 0) {
-        haptic('warning');
-    }
+        document.getElementById('boost-btn').classList.add('btn-boost-active'); haptic('heavy'); quickSave();
+    } else if (boostsDb === 0) haptic('warning');
 }
 
-// === УПРАВЛЕНИЕ ИГРОЙ ===
 function startGame(mode) {
-    gameMode = mode;
-    gameState = 'PLAYING';
-    isPaused = false;
-    score = 0;
-    houseX = -5000;
-    obstacles = [];
-    collectables = [];
-    particles = [];
-    floatTexts = [];
-    isBoostActive = false;
-    boostFrames = 0;
-    isNewRecord = false;
-    
-    player.y = groundY() - player.h;
-    player.dy = 0;
-    player.grounded = true;
-    
-    document.getElementById('menu').style.display = 'none';
-    document.getElementById('death-screen').style.display = 'none';
-    document.getElementById('pause-screen').style.display = 'none';    document.getElementById('ui').style.display = 'flex';
-    document.getElementById('pause-btn').style.display = 'flex';
-    document.getElementById('score').innerText = '0';
-    
-    // Показ подсказки если первый раз
-    if (!settings.tutorialShown) {
-        document.getElementById('tutorial-hint').style.display = 'block';
-    }
-    
-    // Настройка BackButton для паузы
-    tg.BackButton.show();
-    tg.BackButton.onClick(() => togglePause());
-    
-    canvas.style.filter = 'none';
-    canvas.style.transform = 'none';
-    
-    haptic('light');
+    gameMode = mode; gameState = 'PLAYING'; isPaused = false; score = 0; houseX = -5000;
+    obstacles = []; collectables = []; particles = []; floatTexts = []; isBoostActive = false; boostFrames = 0; isNewRecord = false;
+    player.y = groundY() - player.h; player.dy = 0; player.grounded = true;
+    document.getElementById('menu').style.display = 'none'; document.getElementById('death-screen').style.display = 'none';
+    document.getElementById('pause-screen').style.display = 'none'; document.getElementById('ui').style.display = 'flex';
+    document.getElementById('pause-btn').style.display = 'flex'; document.getElementById('score').innerText = '0';
+    if (!settings.tutorialShown) document.getElementById('tutorial-hint').style.display = 'block';
+    tg.BackButton.show(); tg.BackButton.onClick(() => togglePause());
+    canvas.style.filter = 'none'; canvas.style.transform = 'none'; haptic('light');
 }
 
 function togglePause() {
     if (gameState !== 'PLAYING') return;
-    
     isPaused = !isPaused;
-    
-    if (isPaused) {
-        document.getElementById('pause-screen').style.display = 'flex';
-        tg.BackButton.hide();
-    } else {
-        document.getElementById('pause-screen').style.display = 'none';
-        tg.BackButton.show();
-    }
+    if (isPaused) { document.getElementById('pause-screen').style.display = 'flex'; tg.BackButton.hide(); }
+    else { document.getElementById('pause-screen').style.display = 'none'; tg.BackButton.show(); }
 }
 
 function returnToMenu() {
-    gameState = 'MENU';
-    document.getElementById('death-screen').style.display = 'none';
-    document.getElementById('pause-screen').style.display = 'none';
-    document.getElementById('ui').style.display = 'none';
-    document.getElementById('pause-btn').style.display = 'none';
-    document.getElementById('menu').style.display = 'flex';
-    document.getElementById('tutorial-hint').style.display = 'none';
-    
-    tg.BackButton.hide();
-    canvas.style.filter = 'none';
-    canvas.style.transform = 'none';
-    
-    loadLeaderboard();
-    fetchUserData();
+    gameState = 'MENU'; document.getElementById('death-screen').style.display = 'none';
+    document.getElementById('pause-screen').style.display = 'none'; document.getElementById('ui').style.display = 'none';
+    document.getElementById('pause-btn').style.display = 'none'; document.getElementById('menu').style.display = 'flex';
+    document.getElementById('tutorial-hint').style.display = 'none'; tg.BackButton.hide();
+    canvas.style.filter = 'none'; canvas.style.transform = 'none'; loadLeaderboard(); fetchUserData();
 }
+
 function shareScore() {
     const text = `Я набрал(а) ${score} очков в Ксюшачке^! 💊🚀\nСможешь побить мой рекорд?`;
-    
-    if (tg.shareToStory) {
-        tg.shareToStory(text);
-    } else if (tg.sendData) {
-        tg.sendData(JSON.stringify({ type: 'score', score: score }));
-    } else {
-        // Фоллбэк для браузера
-        navigator.clipboard?.writeText(text);
-        alert('Счёт скопирован в буфер обмена!');
-    }
-    
+    if (tg.shareToStory) tg.shareToStory(text);
+    else if (tg.sendData) tg.sendData(JSON.stringify({ type: 'score', score }));
+    else { navigator.clipboard?.writeText(text); alert('Счёт скопирован!'); }
     haptic('success');
 }
 
-// === ОБНОВЛЕНИЕ ИГРЫ ===
 function update() {
-    if (gameState !== 'PLAYING' || isPaused) return;
+    if (gameState !== 'PLAYING' || isPaused) return;    const currentSpeed = isBoostActive ? gameSpeed * 3 : gameSpeed;
     
-    // Скорость с учётом буста
-    const currentSpeed = isBoostActive ? gameSpeed * 3 : gameSpeed;
-    
-    // Логика буста
     if (isBoostActive) {
         boostFrames--;
-        const boostPercent = (boostFrames / 300) * 100;
-        document.getElementById('boost-timer-bar').style.width = boostPercent + '%';
-        
-        // Визуальный эффект
+        document.getElementById('boost-timer-bar').style.width = (boostFrames / 300 * 100) + '%';
         canvas.style.filter = `hue-rotate(${boostFrames * 8}deg) saturate(200%) brightness(1.2)`;
-        
-        // Частицы при бусте
-        if (boostFrames % 5 === 0) {
-            createParticles(player.x + player.w, player.y + player.h/2, 2, '#00ffff');
-        }
-        
-        if (boostFrames <= 0) {
-            isBoostActive = false;
-            document.getElementById('boost-btn').classList.remove('btn-boost-active');
-            document.getElementById('boost-timer-bar').style.width = '0%';
-            canvas.style.filter = 'none';
-        }
+        if (boostFrames % 5 === 0) createParticles(player.x + player.w, player.y + player.h/2, 2, '#00ffff');
+        if (boostFrames <= 0) { isBoostActive = false; document.getElementById('boost-btn').classList.remove('btn-boost-active'); document.getElementById('boost-timer-bar').style.width = '0%'; canvas.style.filter = 'none'; }
     }
     
-    // Физика игрока
-    player.dy += player.g;
-    player.y += player.dy;
+    player.dy += player.g; player.y += player.dy;
+    if (player.y + player.h > groundY()) { player.y = groundY() - player.h; player.dy = 0; player.grounded = true; }
+    else player.grounded = false;
     
-    if (player.y + player.h > groundY()) {        player.y = groundY() - player.h;
-        player.dy = 0;
-        player.grounded = true;
-    } else {
-        player.grounded = false;
-    }
+    if (player.grounded) { player.tick++; if (player.tick % 7 === 0) player.frame = (player.frame + 1) % 3; }
+    if (player.grounded && player.tick % 10 === 0) createParticles(player.x, player.y + player.h, 1, '#888');
     
-    // Анимация бега
-    if (player.grounded) {
-        player.tick++;
-        if (player.tick % 7 === 0) {
-            player.frame = (player.frame + 1) % 3;
-        }
-    }
-    
-    // Частицы при беге
-    if (player.grounded && player.tick % 10 === 0) {
-        createParticles(player.x, player.y + player.h, 1, '#888');
-    }
-    
-    // Дом в сюжетном режиме
-    if (gameMode === 'STORY' && score >= 28 && houseX < -1000) {
-        houseX = canvas.width;
-    }
-    
+    if (gameMode === 'STORY' && score >= 28 && houseX < -1000) houseX = canvas.width;
     if (houseX > -1000) {
         houseX -= currentSpeed;
-        if (player.x + player.w > houseX + 100) {
-            gameState = 'WAIT_FINALE';
-            canvas.style.filter = 'brightness(0)';
-            haptic('success');
-            setTimeout(startCutscene, 3000);
-        }
+        if (player.x + player.w > houseX + 100) { gameState = 'WAIT_FINALE'; canvas.style.filter = 'brightness(0)'; haptic('success'); setTimeout(startCutscene, 3000); }
     }
     
-    // Препятствия (пиво)
     for (let i = obstacles.length - 1; i >= 0; i--) {
-        obstacles[i].x -= currentSpeed;
-        const o = obstacles[i];
-        
-        // Коллизия (только если буст не активен)
-        if (!isBoostActive && 
-            player.x + 35 < o.x + o.w && 
-            player.x + player.w - 35 > o.x && 
-            player.y + 10 < o.y + o.h && 
-            player.y + player.h > o.y + 10) {
-            
-            gameState = 'DEAD';
-            screenShake = 20;
-            haptic('heavy');            
-            if (gameMode === 'FREE') {
-                saveProgress(score);
-            }
-            
-            deathMsg.innerText = phrases[Math.floor(Math.random() * phrases.length)];
-            document.getElementById('final-score').innerText = score;
-            canvas.style.filter = 'none';
-            document.getElementById('ui').style.display = 'none';
-            document.getElementById('pause-btn').style.display = 'none';
-            document.getElementById('death-screen').style.display = 'flex';
-            tg.BackButton.hide();
+        obstacles[i].x -= currentSpeed; const o = obstacles[i];
+        if (!isBoostActive && player.x + 35 < o.x + o.w && player.x + player.w - 35 > o.x && player.y + 10 < o.y + o.h && player.y + player.h > o.y + 10) {
+            gameState = 'DEAD'; screenShake = 20; haptic('heavy');
+            if (gameMode === 'FREE') saveProgress(score);
+            document.getElementById('death-msg').innerText = phrases[Math.floor(Math.random() * phrases.length)];
+            document.getElementById('final-score').innerText = score; canvas.style.filter = 'none';
+            document.getElementById('ui').style.display = 'none'; document.getElementById('pause-btn').style.display = 'none';
+            document.getElementById('death-screen').style.display = 'flex'; tg.BackButton.hide();
         }
-        
-        if (o.x + o.w < 0) {
-            obstacles.splice(i, 1);
-            score++;
-            document.getElementById('score').innerText = score;
-        }
+        if (o.x + o.w < 0) { obstacles.splice(i, 1); score++; document.getElementById('score').innerText = score; }
     }
     
-    // Сбор таблеток
     for (let i = collectables.length - 1; i >= 0; i--) {
-        collectables[i].x -= currentSpeed;
-        const c = collectables[i];
-        
-        if (player.x < c.x + c.w && 
-            player.x + player.w > c.x && 
-            player.y < c.y + c.h && 
-            player.y + player.h > c.y) {
-            
-            pillsDb++;
-            document.getElementById('pills-count').innerText = pillsDb;
-            createFloatText(c.x, c.y, '+1 💊');
-            createParticles(c.x + c.w/2, c.y + c.h/2, 8, '#ffff00');
-            haptic('light');
+        collectables[i].x -= currentSpeed; const c = collectables[i];
+        if (player.x < c.x + c.w && player.x + player.w > c.x && player.y < c.y + c.h && player.y + player.h > c.y) {
+            pillsDb++; document.getElementById('pills-count').innerText = pillsDb;
+            createFloatText(c.x, c.y, '+1 💊'); createParticles(c.x + c.w/2, c.y + c.h/2, 8, '#ffff00'); haptic('light');
             collectables.splice(i, 1);
-        } else if (c.x + c.w < 0) {
-            collectables.splice(i, 1);
-        }
+        } else if (c.x + c.w < 0) collectables.splice(i, 1);
     }
     
-    // Спавн препятствий
     let spawnedBeer = false;
-    if ((gameMode === 'FREE' || score < 28) && 
-        Math.random() < 0.04 && 
-        (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 300)) {
-        obstacles.push({ x: canvas.width, y: groundY() - 75, w: 45, h: 75 });
-        spawnedBeer = true;
-    }    
-    // Спавн таблеток
-    if (!spawnedBeer && 
-        Math.random() < 0.015 && 
-        (collectables.length === 0 || collectables[collectables.length-1].x < canvas.width - 400)) {
-        collectables.push({ x: canvas.width, y: groundY() - 140, w: 40, h: 40 });
+    if ((gameMode === 'FREE' || score < 28) && Math.random() < 0.04 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 300)) {
+        obstacles.push({ x: canvas.width, y: groundY() - 75, w: 45, h: 75 }); spawnedBeer = true;
+    }
+    if (!spawnedBeer && Math.random() < 0.015 && (collectables.length === 0 || collectables[collectables.length-1].x < canvas.width - 400)) {        collectables.push({ x: canvas.width, y: groundY() - 140, w: 40, h: 40 });
     }
     
-    // Обновление частиц
-    for (let i = particles.length - 1; i >= 0; i--) {
-        particles[i].x += particles[i].vx;
-        particles[i].y += particles[i].vy;
-        particles[i].life--;
-        particles[i].vy += 0.3; // гравитация
-        
-        if (particles[i].life <= 0) {
-            particles.splice(i, 1);
-        }
-    }
+    for (let i = particles.length - 1; i >= 0; i--) { particles[i].x += particles[i].vx; particles[i].y += particles[i].vy; particles[i].life--; particles[i].vy += 0.3; if (particles[i].life <= 0) particles.splice(i, 1); }
+    for (let i = floatTexts.length - 1; i >= 0; i--) { floatTexts[i].y -= 2; floatTexts[i].life--; if (floatTexts[i].life <= 0) floatTexts.splice(i, 1); }
     
-    // Обновление всплывающего текста
-    for (let i = floatTexts.length - 1; i >= 0; i--) {
-        floatTexts[i].y -= 2;
-        floatTexts[i].life--;
-        
-        if (floatTexts[i].life <= 0) {
-            floatTexts.splice(i, 1);
-        }
-    }
-    
-    // Тряска экрана
-    if (screenShake > 0) {
-        screenShake--;
-        const shakeX = (Math.random() - 0.5) * screenShake;
-        const shakeY = (Math.random() - 0.5) * screenShake;
-        canvas.style.transform = `translate(${shakeX}px, ${shakeY}px)`;
-    } else {
-        canvas.style.transform = 'none';
-    }
+    if (screenShake > 0) { screenShake--; canvas.style.transform = `translate(${(Math.random()-0.5)*screenShake}px, ${(Math.random()-0.5)*screenShake}px)`; }
+    else canvas.style.transform = 'none';
 }
 
-// === ОТРИСОВКА ===
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Фон
-    ctx.drawImage(imgs.bg, 0, 0, canvas.width, canvas.height);
+    if (imgs.bg.complete && imgs.bg.naturalWidth) ctx.drawImage(imgs.bg, 0, 0, canvas.width, canvas.height);
+    else { ctx.fillStyle = '#111'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
     
     if (gameState === 'PLAYING' || gameState === 'WAIT_FINALE') {
-        // Дом        if (houseX > -1000) {
-            ctx.drawImage(imgs.house, houseX, groundY() - 320, 320, 320);
-        }
-        
-        // Препятствия
-        obstacles.forEach(o => {
-            ctx.drawImage(imgs.beer, o.x, o.y, o.w, o.h);
-        });
-        
-        // Таблетки
-        collectables.forEach(c => {
-            ctx.drawImage(imgs.pills, c.x, c.y, c.w, c.h);
-        });
-        
-        // Игрок
+        if (houseX > -1000 && imgs.house.complete) ctx.drawImage(imgs.house, houseX, groundY() - 320, 320, 320);
+        obstacles.forEach(o => { if (imgs.beer.complete) ctx.drawImage(imgs.beer, o.x, o.y, o.w, o.h); else { ctx.fillStyle = '#f60'; ctx.fillRect(o.x, o.y, o.w, o.h); } });
+        collectables.forEach(c => { if (imgs.pills.complete) ctx.drawImage(imgs.pills, c.x, c.y, c.w, c.h); else { ctx.fillStyle = '#ff0'; ctx.beginPath(); ctx.arc(c.x+c.w/2, c.y+c.h/2, c.w/2, 0, Math.PI*2); ctx.fill(); } });
         const cur = player.grounded ? imgs.run[player.frame] : imgs.jump;
-        ctx.drawImage(cur, player.x, player.y, player.w, player.h);
-        
-        // Частицы
-        particles.forEach(p => {
-            ctx.globalAlpha = p.life / 30;
-            ctx.fillStyle = p.color;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fill();
-        });
-        ctx.globalAlpha = 1;
+        if (cur?.complete) ctx.drawImage(cur, player.x, player.y, player.w, player.h);
+        else { ctx.fillStyle = isBoostActive ? '#0ff' : '#f0f'; ctx.fillRect(player.x, player.y, player.w, player.h); }
+        particles.forEach(p => { ctx.globalAlpha = p.life / 30; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); }); ctx.globalAlpha = 1;
     }
-    
-    // Всплывающий текст
-    floatTexts.forEach(t => {
-        ctx.fillStyle = t.color;
-        ctx.font = 'bold 20px Courier New';
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 3;
-        ctx.strokeText(t.text, t.x, t.y);
-        ctx.fillText(t.text, t.x, t.y);
-    });
-    
+    floatTexts.forEach(t => { ctx.fillStyle = t.color; ctx.font = 'bold 20px Courier New'; ctx.strokeStyle = 'black'; ctx.lineWidth = 3; ctx.strokeText(t.text, t.x, t.y); ctx.fillText(t.text, t.x, t.y); });
     requestAnimationFrame(draw);
 }
 
-// === ЧАСТИЦЫ ===
 function createParticles(x, y, count, color) {
-    for (let i = 0; i < count; i++) {
-        particles.push({
-            x: x,
-            y: y,
-            vx: (Math.random() - 0.5) * 8,
-            vy: (Math.random() - 0.5) * 8 - 2,            life: 30 + Math.random() * 20,
-            size: 3 + Math.random() * 4,
-            color: color
-        });
-    }
+    for (let i = 0; i < count; i++) particles.push({ x, y, vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8-2, life: 30+Math.random()*20, size: 3+Math.random()*4, color });
 }
-
-// === ВСПЛЫВАЮЩИЙ ТЕКСТ ===
 function createFloatText(x, y, text) {
-    const el = document.createElement('div');
-    el.className = 'float-text';
-    el.innerText = text;
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-    document.body.appendChild(el);
-    
+    const el = document.createElement('div'); el.className = 'float-text'; el.innerText = text;
+    el.style.left = x + 'px'; el.style.top = y + 'px'; document.body.appendChild(el);
     setTimeout(() => el.remove(), 1000);
 }
+function showNewRecord() { const el = document.getElementById('new-record'); el.style.display = 'block'; haptic('success'); setTimeout(() => el.style.display = 'none', 2000); }
 
-// === НОВЫЙ РЕКОРД ===
-function showNewRecord() {
-    const el = document.getElementById('new-record');
-    el.style.display = 'block';
-    haptic('success');
-    
-    setTimeout(() => {
-        el.style.display = 'none';
-    }, 2000);
-}
-
-// === КАТСЦЕНА ===
-function startCutscene() {
-    gameState = 'CUT';
-    document.getElementById('cutscene').style.display = 'flex';
-    document.getElementById('ui').style.display = 'none';
-    document.getElementById('pause-btn').style.display = 'none';
-    currentSlide = 0;
-    showSlide();
-}
-
+function startCutscene() { gameState = 'CUT'; document.getElementById('cutscene').style.display = 'flex'; document.getElementById('ui').style.display = 'none'; document.getElementById('pause-btn').style.display = 'none'; currentSlide = 0; showSlide(); }
 function showSlide() {
     if (currentSlide < slides.length) {
-        const img = document.getElementById('cutscene-img');
-        img.classList.remove('show');
-        
-        setTimeout(() => {
-            img.src = slides[currentSlide];
-            img.onload = () => img.classList.add('show');
-        }, 100);
-    } else {        location.reload();
-    }
+        const img = document.getElementById('cutscene-img'); img.classList.remove('show');
+        setTimeout(() => { img.src = slides[currentSlide]; img.onload = () => img.classList.add('show'); }, 100);
+    } else location.reload();
 }
+document.getElementById('next-btn').onclick = () => { currentSlide++; showSlide(); haptic('light'); };
 
-document.getElementById('next-btn').onclick = () => {
-    currentSlide++;
-    showSlide();
-    haptic('light');
-};
-
-// === УПРАВЛЕНИЕ ===
 function handleJump(e) {
-    if (gameState === 'PLAYING' && !isPaused && player.grounded) {
-        // Игнорируем если тап по кнопке
-        if (e.target.tagName === 'BUTTON') return;
-        
-        player.dy = -player.jf;
-        player.grounded = false;
-        
-        // Частицы при прыжке
-        createParticles(player.x + player.w/2, player.y + player.h, 5, '#fff');
-        haptic('medium');
-        
-        // Скрытие подсказки
-        if (!settings.tutorialShown) {
-            settings.tutorialShown = true;
-            saveSettings();
-            document.getElementById('tutorial-hint').style.display = 'none';
-        }
+    if (gameState === 'PLAYING' && !isPaused && player.grounded && e.target.tagName !== 'BUTTON') {
+        player.dy = -player.jf; player.grounded = false;        createParticles(player.x + player.w/2, player.y + player.h, 5, '#fff'); haptic('medium');
+        if (!settings.tutorialShown) { settings.tutorialShown = true; saveSettings(); document.getElementById('tutorial-hint').style.display = 'none'; }
     }
 }
-
 window.addEventListener('touchstart', handleJump, { passive: false });
 window.addEventListener('mousedown', handleJump);
+window.addEventListener('keydown', (e) => { if (e.code === 'Space' || e.code === 'ArrowUp') handleJump(e); if (e.code === 'Escape') togglePause(); });
 
-// Клавиатура (для тестов на десктопе)
-window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' || e.code === 'ArrowUp') {
-        handleJump(e);
-    }
-    if (e.code === 'Escape') {
-        togglePause();
-    }
-});
-
-// === ИНИЦИАЛИЗАЦИЯ ===
-loadSettings();
-fetchUserData();
-loadLeaderboard();
-// Игровой цикл
-setInterval(update, 1000/60);
-draw();
-
-// Предзагрузка изображений
-let loadedAssets = 0;
-const totalAssets = Object.keys(imgs).length + slides.length;
-
-Object.values(imgs).forEach(img => {
-    if (img instanceof Array) {
-        img.forEach(i => {
-            i.onload = () => loadedAssets++;
-        });
-    } else {
-        img.onload = () => loadedAssets++;
-    }
-});
-
-slides.forEach((src, i) => {
-    const img = new Image();
-    img.src = src;
-    img.onload = () => loadedAssets++;
-});
-
+// === INIT ===
+loadSettings(); fetchUserData(); loadLeaderboard();
+setInterval(update, 1000/60); draw();
 </script>
 </body>
 </html>
