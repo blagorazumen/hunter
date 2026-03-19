@@ -3,19 +3,15 @@ if (tg) tg.expand();
 
 let cash = 328000;
 let income = 0;
-let currentSubTab = null;
+let clickValue = 100;
 
 function updateUI() {
-    const formatted = Math.floor(cash).toLocaleString('ru-RU');
-    document.getElementById('cash-display').innerText = formatted;
-    document.getElementById('income-display').innerText = `ДОХОД: ${Math.floor(income)} / СЕК`;
-    
-    const ovCash = document.getElementById('overlay-balance-val');
-    if (ovCash) ovCash.innerText = formatted;
+    document.getElementById('cash-display').innerText = Math.floor(cash).toLocaleString('ru-RU');
+    document.getElementById('income-display').innerText = `Доход: ${Math.floor(income)} / сек`;
 }
 
 function doSueta() {
-    cash += 100;
+    cash += clickValue;
     if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
     updateUI();
 }
@@ -24,98 +20,110 @@ function openTab(name) {
     const ov = document.getElementById('main-overlay');
     const ct = document.getElementById('main-content');
     ov.style.display = 'flex';
-    currentSubTab = null;
-
-    document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+    
+    document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.innerText.includes(name === 'shop' ? 'МАГАЗИН' : name === 'assets' ? 'ИМУЩЕСТВО' : 'ЛИДЕРЫ')) btn.classList.add('active');
+    });
 
     if (name === 'shop') {
-        document.getElementById('shop-nav').classList.add('active');
         ct.innerHTML = `
-            <h2 style="color:var(--gold); text-align:center; margin-bottom:20px;">МАГАЗИН</h2>
-            <button class="shop-menu-btn" onclick="renderCategoryList()">ТЕМКИ</button>
-            <button class="shop-menu-btn" onclick="alert('Скоро...')">ОДЁЖКА</button>
-            <button class="shop-menu-btn" onclick="alert('Скоро...')">РУЛЬ И КОЛЁСА</button>
+            <h2 style="letter-spacing:5px; margin-bottom:30px; color:var(--gold);">МАГАЗИН</h2>
+            <button class="shop-menu-btn" onclick="renderCategory('tasks')">ТЕМКИ</button>
+            <button class="shop-menu-btn" onclick="renderCategory('clothes')">ОДЁЖКА</button>
+            <button class="shop-menu-btn" onclick="renderCategory('wheels')">РУЛЬ И КОЛЁСА</button>
         `;
     } else if (name === 'leaderboard') {
-        document.getElementById('code-nav').classList.add('active');
+        // РАЗДЕЛ С КОДАМИ
         ct.innerHTML = `
-            <h2 style="color:var(--gold); text-align:center; margin-bottom:20px;">СИСТЕМА</h2>
-            <input type="text" id="promo-input" placeholder="КОД">
+            <h2 style="letter-spacing:5px; margin-bottom:20px; color:var(--gold);">СИСТЕМА</h2>
+            <p style="font-size:12px; opacity:0.6; margin-bottom:20px;">ВВЕДИТЕ СЕКРЕТНЫЙ ШИФР:</p>
+            <input type="text" id="promo-input" placeholder="000000" 
+                style="width:100%; background:none; border:1px solid var(--gold); color:var(--ivory); padding:15px; text-align:center; font-size:20px; letter-spacing:5px; margin-bottom:20px; outline:none;">
             <button class="shop-menu-btn" onclick="checkCode()">АКТИВИРОВАТЬ</button>
         `;
-    }
-    updateUI();
-}
-
-function goBack() {
-    if (currentSubTab === 'districts') {
-        renderCategoryList();
     } else {
-        document.getElementById('main-overlay').style.display = 'none';
+        ct.innerHTML = `<h2 style="color:var(--gold); letter-spacing:5px;">СКОРО</h2><p style="opacity:0.5; margin-top:20px; text-transform:uppercase; font-size:12px;">В разработке...</p>`;
     }
 }
 
-function renderCategoryList() {
-    currentSubTab = 'categories';
-    const ct = document.getElementById('main-content');
-    let html = `<h2 style="color:var(--gold); text-align:center; margin-bottom:20px;">ТЕМКИ</h2>`;
-    DB.items.tasks.forEach((item, index) => {
-        html += `<button class="shop-menu-btn" onclick="renderDistricts(${index})">${item.name}</button>`;
-    });
-    ct.innerHTML = html;
+// Проверка кода
+function checkCode() {
+    const val = document.getElementById('promo-input').value;
+    if (val === '032805') {
+        cash += 10000000;
+        alert("Шифр принят: +10 000 000 сум");
+        updateUI();
+        closeTab();
+    } else {
+        alert("Неверный код доступа");
+    }
 }
 
-function renderDistricts(idx) {
-    currentSubTab = 'districts';
+function renderCategory(cat) {
     const ct = document.getElementById('main-content');
-    const item = DB.items.tasks[idx];
-    let html = `<h2 style="color:var(--gold); text-align:center; margin-bottom:20px;">${item.name}</h2>`;
+    if (cat === 'tasks') {
+        let html = `<h2 style="margin-bottom:25px; color:var(--gold); letter-spacing:2px;">ДОСТУПНЫЕ ТЕМКИ</h2>`;
+        DB.items.tasks.forEach((item, index) => {
+            html += `<button class="shop-menu-btn" onclick="renderDistricts(${index})">${item.name.toUpperCase()}</button>`;
+        });
+        html += `<button class="back-btn" onclick="openTab('shop')">← Назад</button>`;
+        ct.innerHTML = html;
+    }
+}
+
+function renderDistricts(itemIdx) {
+    const ct = document.getElementById('main-content');
+    const item = DB.items.tasks[itemIdx];
+    let html = `<h2 style="margin-bottom:20px; color:var(--gold); letter-spacing:1px;">${item.name}</h2>`;
 
     for (let key in DB.districts) {
         let d = DB.districts[key];
-        let price = Math.floor((item.basePrice * d.priceMult) * Math.pow(1.15, item.owned[key]));
+        let count = item.owned[key];
+        // ИСПРАВЛЕНО: берем basePrice из базы
+        let currentPrice = Math.floor((item.basePrice * d.priceMult) * Math.pow(1.15, count));
         let inc = Math.floor(item.income * d.mult);
+
         html += `
             <div class="item-card">
-                <div style="font-size:11px;"><b>${d.name}</b><br>+${inc}/с | Доля: ${item.owned[key]}</div>
-                <button class="buy-btn" onclick="buy(${idx}, '${key}')" style="background:none; border:1px solid var(--gold); color:var(--gold); padding:10px; font-size:10px;">
-                    ${price.toLocaleString('ru-RU')}
+                <div style="font-size:11px; text-transform:uppercase;">
+                    <b>${d.name}</b><br>
+                    <span style="color:var(--gold); opacity:0.8;">+${inc}/с | Доля: ${count}</span>
+                </div>
+                <button onclick="buy('tasks', ${itemIdx}, '${key}')" style="background:none; border:1px solid var(--gold); color:var(--gold); padding:10px; font-size:11px; min-width:90px;">
+                    ${currentPrice.toLocaleString('ru-RU')}
                 </button>
             </div>`;
     }
+    html += `<button class="back-btn" onclick="renderCategory('tasks')">← Назад</button>`;
     ct.innerHTML = html;
 }
 
-function buy(idx, key) {
-    const item = DB.items.tasks[idx];
+function buy(cat, idx, key) {
+    const item = DB.items[cat][idx];
     const d = DB.districts[key];
     let price = Math.floor((item.basePrice * d.priceMult) * Math.pow(1.15, item.owned[key]));
+
     if (cash >= price) {
         cash -= price;
         item.owned[key]++;
         recalc();
         updateUI();
         renderDistricts(idx);
+        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
     } else {
-        alert("Мало денег!");
-    }
-}
-
-function checkCode() {
-    if (document.getElementById('promo-input').value === '032805') {
-        cash += 10000000;
-        alert("+10 000 000 СУМ!");
-        updateUI();
+        alert("Денег не хватает!");
     }
 }
 
 function recalc() {
     income = 0;
     DB.items.tasks.forEach(i => {
-        for (let k in i.owned) income += (i.income * DB.districts[k].mult) * i.owned[k];
+        for (let k in i.owned) { income += (i.income * DB.districts[k].mult) * i.owned[k]; }
     });
 }
 
+function closeTab() { document.getElementById('main-overlay').style.display = 'none'; }
 setInterval(() => { if (income > 0) { cash += (income / 10); updateUI(); } }, 100);
 updateUI();
 
