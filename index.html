@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Altushka Run: Toxic Edition</title>
+    <title>Altushka Run: Underground Edition</title>
     <style>
         body { margin: 0; background: #000; color: white; font-family: 'Courier New', monospace; overflow: hidden; touch-action: manipulation; }
         canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; }
@@ -15,21 +15,21 @@
         h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 20px; }
         
         #death-screen { display: none; }
-        #death-msg { color: #00ffff; font-size: 24px; font-weight: bold; margin-bottom: 30px; padding: 0 20px; text-transform: uppercase; line-height: 1.4; }
+        #death-msg { color: #00ffff; font-size: 26px; font-weight: bold; margin-bottom: 30px; padding: 0 20px; text-transform: uppercase; text-shadow: 2px 2px #ff00ff; }
 
         #cutscene { 
             display: none; background: #000; pointer-events: auto;
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         }
         #cutscene img { 
-            max-width: 90%; max-height: 70%; object-fit: contain; 
-            border: 3px solid #ff00ff; box-shadow: 0 0 20px #ff00ff;
-            opacity: 0; transition: opacity 1.2s ease-in-out;
+            max-width: 90%; max-height: 75%; object-fit: contain; 
+            border: 2px solid #ff00ff; box-shadow: 0 0 20px #ff00ff;
+            opacity: 0; transition: opacity 1.5s ease-in-out;
         }
         #cutscene img.show { opacity: 1; }
 
-        button { background: #ff00ff; border: none; padding: 15px 40px; color: white; font-size: 20px; border-radius: 10px; cursor: pointer; box-shadow: 0 5px #990099; font-weight: bold; pointer-events: auto; margin-top: 15px; }
-        button:active { transform: translateY(2px); box-shadow: 0 2px #990099; }
+        button { background: #ff00ff; border: none; padding: 15px 50px; color: white; font-size: 22px; border-radius: 12px; cursor: pointer; box-shadow: 0 6px #990099; font-weight: bold; pointer-events: auto; }
+        button:active { transform: translateY(3px); box-shadow: 0 2px #990099; }
     </style>
 </head>
 <body>
@@ -41,14 +41,14 @@
     </div>
 
     <div id="death-screen" class="overlay">
-        <h1>F*CK!</h1>
+        <h1>КРАШ!</h1>
         <div id="death-msg"></div>
         <button onclick="location.reload()">ЕЩЁ РАЗ</button>
     </div>
 
     <div id="cutscene">
         <img id="cutscene-img" src="">
-        <button id="next-btn">ДАЛЕЕ</button>
+        <button id="next-btn" style="margin-top:20px;">ДАЛЕЕ</button>
     </div>
 
     <canvas id="game"></canvas>
@@ -70,31 +70,22 @@ imgs.house.src = 'house.png';
 
 const slides = ['end_1.jpg', 'end_2.jpg', 'end_3.jpg', 'end_4.jpg', 'end_5.jpg'];
 
-// ОГРОМНЫЙ СПИСОК ФРАЗ
+// ТОТ САМЫЙ КРУТОЙ СПИСОК
 const phrases = [
-    "ОПЯТЬ?! ТЫ СЕРЬЁЗНО?", 
-    "НУ КАК ТАК-ТО, Ксюш?", 
-    "КЛЮЧИ ПОТЕРЯЛА И МОЗГИ ТОЖЕ?", 
-    "КИБРАЙ ОКАЗАЛСЯ СИЛЬНЕЕ...", 
-    "ПОПРОБУЙ ЕЩЁ, СКУФ ЖДЁТ!", 
-    "ПОЧТИ ДОБЕЖАЛА! (НЕТ)", 
-    "ТЫ ЧТО, ПЬЯНАЯ?", 
-    "СЛИШКОМ МНОГО ПИВА НА ПУТИ...", 
-    "ЭТО БЫЛО ЖАЛКО.", 
-    "КНОПКУ ПРЫЖКА ЗАЕЛО?", 
-    "ДАЖЕ БАБУЛЯ ПРОБЕЖАЛА БЫ ДАЛЬШЕ!", 
-    "ТВОЙ ПСИХИАТР БУДЕТ НЕДОВОЛЕН.", 
-    "АЛЬТУШКА НЕ СПРАВИЛАСЬ.", 
-    "ВЕРНИСЬ И СДЕЛАЙ ЭТО НОРМАЛЬНО!", 
-    "ТЫ ПОЗОР СООБЩЕСТВА!", 
-    "МЕНЬШЕ ГРУСТИ - БОЛЬШЕ ПРЫЖКОВ!", 
-    "ЭТО БЫЛО ТАК БЛИЗКО... ХОТЯ НЕ.", 
-    "ЧИСТО ТАШКЕНТСКИЙ ЗАНОС!", 
-    "КОБАЛЬТ БЫ ТЕБЯ ОБЪЕХАЛ.", 
-    "ТЫ ТАК В ДОМИК НЕ ПОПАДЕШЬ!", 
-    "ГЛАЗА ОТКРОЙ, БУТЫЛКА ПРЯМО ТАМ!", 
-    "МИМО КАССЫ!", 
-    "УДАЛЯЙ ИГРУ, НЕ ПОЗОРЬСЯ!"
+    "АНДЕГРАУНД НЕ ПРОЩАЕТ",
+    "ЧИЛАНЗАРСКИЕ ДВОРИКИ ЖДУТ",
+    "ТЫ СЛИШКОМ ПЬЯНА ДЛЯ ЭТОГО",
+    "КИБРАЙ ОКАЗАЛСЯ СИЛЬНЕЕ",
+    "ЭТО ТЕБЕ НЕ ВПИСКА",
+    "ПЕРЕБРАЛА С КИСЛОТОЙ?",
+    "СЛИШКОМ МНОГО ТРЭША",
+    "ОТХОДНЯКИ БУДУТ ЖЁСТКИМИ",
+    "ТЫ ВООБЩЕ ВИДИШЬ ДОРОГУ?",
+    "АЛЬТУШКА ПРИУНЫЛА",
+    "ЧИСТЫЙ ТАШКЕНТСКИЙ ХАОС",
+    "ТЫ ГДЕ-ТО ПОТЕРЯЛАСЬ...",
+    "ЭТО КОНЕЦ МАРШРУТА",
+    "СЛИШКОМ МНОГО «КИБРАЯ»"
 ];
 
 let currentSlide = 0, gameState = 'MENU', score = 0, gameSpeed = 8.5, houseX = -5000;
@@ -127,6 +118,8 @@ function update() {
     for (let i = obstacles.length - 1; i >= 0; i--) {
         obstacles[i].x -= gameSpeed;
         let o = obstacles[i];
+        
+        // Хитбоксы: честное касание
         if (player.x + 30 < o.x + o.w && player.x + player.w - 30 > o.x && player.y + 10 < o.y + o.h && player.y + player.h > o.y + 10) {
             gameState = 'DEAD';
             deathMsg.innerText = phrases[Math.floor(Math.random() * phrases.length)];
@@ -135,6 +128,7 @@ function update() {
         if (o.x + o.w < 0) { obstacles.splice(i, 1); score++; document.getElementById('score').innerText = score; }
     }
 
+    // Частота появления бутылок увеличена (0.05)
     if (score < 28 && Math.random() < 0.05 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 250)) {
         obstacles.push({ x: canvas.width, y: groundY - 75, w: 45, h: 75 });
     }
