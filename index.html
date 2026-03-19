@@ -3,40 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ксюшачка^ Store</title>
+    <title>Ксюшачка^ Final</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { margin: 0; background: #000; color: white; font-family: 'Courier New', monospace; overflow: hidden; touch-action: manipulation; }
         canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; transition: filter 0.1s ease; }
         
-        /* UI Счета сверху */
+        /* Радужный заголовок */
+        h1 { 
+            font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 20px;
+            background: linear-gradient(to right, #ff00ff, #00ffff, #ffff00, #ff00ff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow-text 3s linear infinite;
+        }
+        @keyframes rainbow-text { to { background-position: 200% center; } }
+
         #ui { position: absolute; top: 15px; left: 15px; width: calc(100% - 30px); display: none; justify-content: space-between; z-index: 100; pointer-events: none; }
         .ui-stats { font-size: 22px; color: #ff00ff; text-shadow: 2px 2px #000; font-weight: bold; }
 
-        /* Кнопка буста СНИЗУ */
+        /* Кнопка буста (сделал не такой яркой) */
         #boost-control { position: absolute; bottom: 30px; right: 20px; z-index: 1000; display: none; pointer-events: auto; }
-        .btn-boost-active { background: #ff00ff; border: 4px solid #fff; padding: 20px; color: white; font-size: 18px; border-radius: 50%; width: 80px; height: 80px; cursor: pointer; box-shadow: 0 0 15px #ff00ff; font-weight: bold; }
+        .btn-boost-active { 
+            background: rgba(255, 0, 255, 0.4); /* Полупрозрачная */
+            border: 2px solid rgba(255, 255, 255, 0.3); 
+            padding: 15px; 
+            color: rgba(255, 255, 255, 0.8); 
+            font-size: 16px; 
+            border-radius: 50%; 
+            width: 70px; 
+            height: 70px; 
+            cursor: pointer; 
+            font-weight: bold;
+            backdrop-filter: blur(2px); /* Легкое размытие под кнопкой */
+        }
+        .btn-boost-active:active { background: rgba(255, 0, 255, 0.7); }
 
-        /* Экраны и оверлеи */
         #menu, #shop, #cutscene, #death-screen { position: absolute; left: 0; width: 100%; height: 100%; text-align: center; z-index: 100; pointer-events: none; }
         .overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; background: rgba(0,0,0,0.85); }
-        h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 20px; }
-        
         .menu-btn { background: #ff00ff; border: none; padding: 15px 40px; color: white; font-size: 18px; border-radius: 12px; cursor: pointer; box-shadow: 0 6px #990099; font-weight: bold; pointer-events: auto; margin: 10px; width: 260px; }
-        .menu-btn:active { transform: translateY(3px); box-shadow: 0 2px #990099; }
         .btn-shop { background: #ffff00; color: #000; box-shadow: 0 6px #999900; }
         .btn-free { background: #00ffff; box-shadow: 0 6px #009999; color: #000; }
 
-        /* Стили магазина */
         #shop { display: none; }
         .shop-item { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; border: 2px solid #ffff00; margin: 20px; width: 80%; max-width: 300px; }
-        .pill-count-display { color: #ffff00; font-size: 24px; margin-bottom: 10px; }
-
         #death-screen { display: none; }
         #leaderboard { margin-top: 20px; width: 85%; background: rgba(255, 0, 255, 0.1); border: 1px solid #ff00ff; border-radius: 10px; padding: 10px; font-size: 13px; }
         .leader-item { display: flex; justify-content: space-between; border-bottom: 1px dashed #444; padding: 4px 0; }
-        
         #cutscene { display: none; background: #000; pointer-events: auto; }
         #cutscene img { max-width: 90%; max-height: 70vh; opacity: 0; transition: opacity 1s; border: 2px solid #ff00ff; }
         #cutscene img.show { opacity: 1; }
@@ -56,20 +71,18 @@
         <h1>КСЮШАЧКА^</h1>
         <button class="menu-btn" onclick="startGame('STORY')">СЮЖЕТ</button>
         <button class="menu-btn btn-free" onclick="startGame('FREE')">СВОБОДНЫЙ ЗАБЕГ</button>
-        <button class="menu-btn btn-shop" onclick="toggleShop(true)">🛒 МАГАЗИН</button>
+        <button class="menu-btn btn-shop" onclick="toggleShop(true)">АПТЕКА</button>
         <div id="leaderboard">
-            <div style="font-weight:bold; color:#00ffff; margin-bottom:5px;">ТОП ЛЕГЕНД:</div>
-            <div id="leader-list">Синхронизация...</div>
+            <div id="leader-list">Загрузка...</div>
         </div>
     </div>
 
     <div id="shop" class="overlay">
         <h1>МАГАЗИН</h1>
-        <div class="pill-count-display">Твои запасы: <span id="shop-pills">0</span> 💊</div>
+        <div style="color:#ffff00; font-size:24px; margin-bottom:10px;">Запасы: <span id="shop-pills">0</span> 💊</div>
         <div class="shop-item">
-            <div style="font-size:20px; margin-bottom:10px;">БУСТ СКОРОСТИ (x3)</div>
-            <div style="font-size:14px; color:#aaa; margin-bottom:15px;">Дает неуязвимость на 5 сек.</div>
-            <button id="buy-btn" class="menu-btn" style="width:100%; margin:0;" onclick="buyBoost()">КУПИТЬ ЗА 10 💊</button>
+            <div>БУСТ СКОРОСТИ (x3)</div>
+            <button id="buy-btn" class="menu-btn" style="width:100%; margin-top:10px;" onclick="buyBoost()">КУПИТЬ (10 💊)</button>
         </div>
         <button class="menu-btn btn-free" onclick="toggleShop(false)">НАЗАД</button>
     </div>
@@ -94,17 +107,16 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const tg = window.Telegram.WebApp;
 tg.expand();
-const playerName = tg.initDataUnsafe?.user?.username || tg.initDataUnsafe?.user?.first_name || "Анонимный Скуф";
+const playerName = tg.initDataUnsafe?.user?.username || tg.initDataUnsafe?.user?.first_name || "Скуф";
 
-let pillsDb = 0;
-let boostsDb = 0;
+let pillsDb = 0, boostsDb = 0, maxScore = 0;
 
-// Загрузка данных
 async function fetchUserData() {
     const { data } = await _supabase.from('records').select('*').eq('username', playerName).single();
     if (data) {
         pillsDb = data.pills || 0;
         boostsDb = data.speed || 0;
+        maxScore = data.score || 0;
         updateUI();
     }
 }
@@ -116,28 +128,25 @@ function updateUI() {
     document.getElementById('boost-count-ui').innerText = boostsDb;
 }
 
-async function quickSave() {
-    await _supabase.from('records').upsert({ username: playerName, pills: pillsDb, speed: boostsDb }, { onConflict: 'username' });
+// Глобальная функция сохранения (исправляет застревание на 18)
+async function forceSync() {
+    await _supabase.from('records').upsert({ 
+        username: playerName, 
+        pills: pillsDb, 
+        speed: boostsDb, 
+        score: maxScore 
+    }, { onConflict: 'username' });
 }
 
-// Магазин
 function toggleShop(show) {
     document.getElementById('menu').style.display = show ? 'none' : 'flex';
     document.getElementById('shop').style.display = show ? 'flex' : 'none';
 }
 
 function buyBoost() {
-    let btn = document.getElementById('buy-btn');
     if (pillsDb >= 10) {
-        pillsDb -= 10;
-        boostsDb += 1;
-        updateUI();
-        quickSave();
-        btn.innerText = "КУПЛЕНО!";
-        setTimeout(() => btn.innerText = "КУПИТЬ ЗА 10 💊", 1000);
-    } else {
-        btn.innerText = "МАЛО 💊!";
-        setTimeout(() => btn.innerText = "КУПИТЬ ЗА 10 💊", 1000);
+        pillsDb -= 10; boostsDb += 1;
+        updateUI(); forceSync();
     }
 }
 
@@ -145,12 +154,12 @@ async function loadLeaderboard() {
     const list = document.getElementById('leader-list');
     const { data } = await _supabase.from('records').select('*').order('score', { ascending: false }).limit(10);
     if (data) {
-        list.innerHTML = data.map((p, i) => `<div class="leader-item"><span>${i+1}. ${p.username}</span><span>${p.score} (💊${p.pills || 0} 🚀${p.speed || 0})</span></div>`).join('');
+        list.innerHTML = `<div style="color:#00ffff; font-weight:bold; margin-bottom:5px;">ТОП ЛЕГЕНД:</div>` + 
+        data.map((p, i) => `<div class="leader-item"><span>${i+1}. ${p.username}</span><span>${p.score} (💊${p.pills || 0})</span></div>`).join('');
     }
 }
 loadLeaderboard();
 
-// Игра
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const imgs = { bg: new Image(), beer: new Image(), pills: new Image(), jump: new Image(), run: [new Image(), new Image(), new Image()], house: new Image() };
@@ -158,7 +167,8 @@ imgs.bg.src = 'bg.png'; imgs.beer.src = 'beer.png'; imgs.pills.src = 'pills.png'
 imgs.run[0].src = 'run_1.png'; imgs.run[1].src = 'run_2.png'; imgs.run[2].src = 'run_3.png';
 imgs.house.src = 'house.png';
 
-let gameState = 'MENU', score = 0, gameSpeed = 7.2, houseX = -5000, gameMode = 'STORY';
+const slides = ['end_1.jpg', 'end_2.jpg', 'end_3.jpg', 'end_4.jpg', 'end_5.jpg'];
+let currentSlide = 0, gameState = 'MENU', score = 0, gameSpeed = 7.2, houseX = -5000, gameMode = 'STORY';
 let isBoostActive = false, boostFrames = 0;
 
 canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -169,6 +179,7 @@ let obstacles = [], collectables = [];
 function startGame(mode) {
     gameMode = mode;
     gameState = 'PLAYING';
+    score = 0; houseX = -5000; obstacles = []; collectables = [];
     document.getElementById('menu').style.display = 'none';
     document.getElementById('ui').style.display = 'flex';
     document.getElementById('boost-control').style.display = 'block';
@@ -176,11 +187,8 @@ function startGame(mode) {
 
 function activateBoost() {
     if (boostsDb > 0 && !isBoostActive && gameState === 'PLAYING') {
-        boostsDb -= 1;
-        isBoostActive = true;
-        boostFrames = 300;
-        updateUI();
-        quickSave();
+        boostsDb -= 1; isBoostActive = true; boostFrames = 300;
+        updateUI(); forceSync();
     }
 }
 
@@ -190,7 +198,7 @@ function update() {
 
     if (isBoostActive) {
         boostFrames--;
-        canvas.style.filter = `hue-rotate(${boostFrames * 10}deg) saturate(2)`;
+        canvas.style.filter = `hue-rotate(${boostFrames * 10}deg) saturate(1.5)`;
         if (boostFrames <= 0) { isBoostActive = false; canvas.style.filter = 'none'; }
     }
 
@@ -198,28 +206,47 @@ function update() {
     if (player.y + player.h > groundY) { player.y = groundY - player.h; player.dy = 0; player.grounded = true; }
     if (player.grounded) { player.tick++; if (player.tick % 7 === 0) player.frame = (player.frame + 1) % 3; }
 
-    // Логика объектов
+    // СЮЖЕТНЫЙ ТРИГГЕР
+    if (gameMode === 'STORY' && score >= 28 && houseX < -1000) houseX = canvas.width;
+    if (houseX > -1000) {
+        houseX -= currentSpeed;
+        if (player.x + player.w > houseX + 150) {
+            gameState = 'WAIT_FINALE';
+            canvas.style.filter = 'brightness(0)';
+            setTimeout(() => {
+                document.getElementById('cutscene').style.display = 'flex';
+                document.getElementById('ui').style.display = 'none';
+                document.getElementById('boost-control').style.display = 'none';
+                showSlide();
+            }, 2000);
+        }
+    }
+
+    // Препятствия
     obstacles.forEach((o, i) => {
         o.x -= currentSpeed;
         if (!isBoostActive && player.x + 35 < o.x + o.w && player.x + player.w - 35 > o.x && player.y + 10 < o.y + o.h && player.y + player.h > o.y + 10) {
             gameState = 'DEAD';
-            saveProgress(score);
+            maxScore = Math.max(maxScore, score);
+            forceSync();
             document.getElementById('death-screen').style.display = 'flex';
             document.getElementById('boost-control').style.display = 'none';
         }
         if (o.x + o.w < 0) { obstacles.splice(i, 1); score++; document.getElementById('score').innerText = score; }
     });
 
+    // Пилсы (теперь сохраняются сразу при подборе)
     collectables.forEach((c, i) => {
         c.x -= currentSpeed;
         if (player.x < c.x + c.w && player.x + player.w > c.x && player.y < c.y + c.h && player.y + player.h > c.y) {
-            pillsDb++;
-            updateUI();
+            pillsDb++; 
+            updateUI(); 
+            forceSync(); // Сохраняем каждую таблетку!
             collectables.splice(i, 1);
         } else if (c.x + c.w < 0) collectables.splice(i, 1);
     });
 
-    if (Math.random() < 0.04 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 350)) {
+    if ((gameMode === 'FREE' || score < 28) && Math.random() < 0.04 && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 350)) {
         obstacles.push({ x: canvas.width, y: groundY - 75, w: 45, h: 75 });
     }
     if (Math.random() < 0.015 && (collectables.length === 0 || collectables[collectables.length-1].x < canvas.width - 500)) {
@@ -227,15 +254,20 @@ function update() {
     }
 }
 
-async function saveProgress(s) {
-    await _supabase.from('records').upsert({ username: playerName, score: s, pills: pillsDb, speed: boostsDb }, { onConflict: 'username' });
-    loadLeaderboard();
+function showSlide() {
+    const img = document.getElementById('cutscene-img');
+    if (currentSlide < slides.length) {
+        img.classList.remove('show');
+        setTimeout(() => { img.src = slides[currentSlide]; img.onload = () => img.classList.add('show'); }, 100);
+    } else location.reload();
 }
+document.getElementById('next-btn').onclick = () => { currentSlide++; showSlide(); };
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(imgs.bg, 0, 0, canvas.width, canvas.height);
-    if (gameState === 'PLAYING') {
+    if (gameState === 'PLAYING' || gameState === 'WAIT_FINALE') {
+        if (houseX > -1000) ctx.drawImage(imgs.house, houseX, groundY - 320, 320, 320);
         obstacles.forEach(o => ctx.drawImage(imgs.beer, o.x, o.y, o.w, o.h));
         collectables.forEach(c => ctx.drawImage(imgs.pills, c.x, c.y, c.w, c.h));
         ctx.drawImage(player.grounded ? imgs.run[player.frame] : imgs.jump, player.x, player.y, player.w, player.h);
@@ -248,9 +280,9 @@ window.addEventListener('touchstart', (e) => {
         player.dy = -player.jf; player.grounded = false; 
     } 
 });
-
 setInterval(update, 1000/60);
 draw();
 </script>
 </body>
 </html>
+
