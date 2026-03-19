@@ -32,21 +32,20 @@ function switchTab(tab) {
             </div>
         `;
     } else if (tab === 'leaderboard') {
-        content.innerHTML = `<h2>ЛИДЕРЫ</h2><p>Тут будут лучшие суетологи.</p>`;
+        content.innerHTML = `<h2>ЛИДЕРЫ</h2><p style="opacity:0.5; margin-top:20px;">Список лучших суетологов пуст.</p>`;
     } else if (tab === 'assets') {
-        content.innerHTML = `<h2>ИМУЩЕСТВО</h2><p>Твои купленные вещи появятся здесь.</p>`;
+        content.innerHTML = `<h2>ИМУЩЕСТВО</h2><p style="opacity:0.5; margin-top:20px;">Пока только амбиции и 328к.</p>`;
     }
 }
 
-// Функция для открытия конкретной категории магазина
 function openCategory(cat) {
     const content = document.getElementById('tab-content');
     if (cat === 'wheels') {
-        content.innerHTML = `<h3>РУЛЬ И КОЛЁСА</h3><p>Тут будут диски, тонировка и прочее.</p><button onclick="switchTab('shop')">Назад</button>`;
+        content.innerHTML = `<h3>РУЛЬ И КОЛЁСА</h3><p style="opacity:0.5; margin-top:20px;">Диски-арбузы появятся позже.</p><br><button onclick="switchTab('shop')" style="color:#d4af37; background:none; border:none; letter-spacing:2px;">НАЗАД</button>`;
     } else if (cat === 'clothes') {
-        content.innerHTML = `<h3>ОДЁЖКА</h3><p>Кепки, ветровки, стиль.</p><button onclick="switchTab('shop')">Назад</button>`;
+        content.innerHTML = `<h3>ОДЁЖКА</h3><p style="opacity:0.5; margin-top:20px;">Присматриваешь ветровку?</p><br><button onclick="switchTab('shop')" style="color:#d4af37; background:none; border:none; letter-spacing:2px;">НАЗАД</button>`;
     } else if (cat === 'tasks') {
-        content.innerHTML = `<h3>ТЕМКИ</h3><p>Тут покупаем доход (бизнес).</p><button onclick="switchTab('shop')">Назад</button>`;
+        content.innerHTML = `<h3>ТЕМКИ</h3><p style="opacity:0.5; margin-top:20px;">Тут будет твой пассивный доход.</p><br><button onclick="switchTab('shop')" style="color:#d4af37; background:none; border:none; letter-spacing:2px;">НАЗАД</button>`;
     }
 }
 
