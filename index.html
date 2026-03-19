@@ -9,24 +9,17 @@
     <style>
         body { margin: 0; background: #000; color: white; font-family: 'Courier New', monospace; overflow: hidden; touch-action: manipulation; }
         canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; transition: filter 3s ease; }
-        
         #ui, #menu, #cutscene, #death-screen { position: absolute; left: 0; width: 100%; height: 100%; text-align: center; z-index: 100; pointer-events: none; }
         #ui { top: 20px; height: auto; font-size: 28px; display: none; color: #ff00ff; text-shadow: 2px 2px #000; }
-        
         .overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; background: rgba(0,0,0,0.8); overflow-y: auto; }
         h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #000; margin-bottom: 20px; }
-        
         #death-screen { display: none; }
         #death-msg { color: #00ffff; font-size: 24px; font-weight: bold; margin-bottom: 30px; text-shadow: 2px 2px #ff00ff; }
-
-        /* Таблица лидеров */
-        #leaderboard { margin-top: 20px; width: 80%; background: rgba(255, 0, 255, 0.1); border: 1px solid #ff00ff; border-radius: 10px; padding: 10px; font-size: 14px; }
+        #leaderboard { margin-top: 20px; width: 85%; background: rgba(255, 0, 255, 0.1); border: 1px solid #ff00ff; border-radius: 10px; padding: 10px; font-size: 14px; }
         .leader-item { display: flex; justify-content: space-between; border-bottom: 1px dashed #444; padding: 5px 0; }
-
         #cutscene { display: none; background: #000; pointer-events: auto; position: fixed; top: 0; left: 0; width: 100%; height: 100%; flex-direction: column; justify-content: center; align-items: center; }
         #cutscene img { max-width: 100%; max-height: 80vh; opacity: 0; transition: opacity 1s ease-in-out; border: 2px solid #ff00ff; }
         #cutscene img.show { opacity: 1; }
-
         button { background: #ff00ff; border: none; padding: 15px 40px; color: white; font-size: 18px; border-radius: 12px; cursor: pointer; box-shadow: 0 6px #990099; font-weight: bold; pointer-events: auto; margin: 10px; width: 250px;}
         button:active { transform: translateY(3px); box-shadow: 0 2px #990099; }
         .btn-free { background: #00ffff; box-shadow: 0 6px #009999; color: #000; }
@@ -34,35 +27,30 @@
 </head>
 <body>
     <div id="ui">SCORE: <span id="score">0</span></div>
-    
     <div id="menu" class="overlay">
         <h1>КСЮШАЧКА^</h1>
         <button onclick="startGame('STORY')">СЮЖЕТ</button>
         <button class="btn-free" onclick="startGame('FREE')">СВОБОДНЫЙ ЗАБЕГ</button>
-        
         <div id="leaderboard">
             <div style="font-weight:bold; color:#00ffff; margin-bottom:5px;">ТОП-10 СКУФОВ:</div>
-            <div id="leader-list">Загрузка рекордов...</div>
+            <div id="leader-list">Синхронизация с базой...</div>
         </div>
     </div>
-
     <div id="death-screen" class="overlay">
         <h1>ППЦ;)</h1>
         <div id="death-msg"></div>
         <button onclick="location.reload()">В МЕНЮ</button>
     </div>
-
     <div id="cutscene">
         <img id="cutscene-img" src="" alt="Финал">
         <button id="next-btn" style="margin-top:20px;">ДАЛЕЕ</button>
     </div>
-
     <canvas id="game"></canvas>
 
 <script>
 // --- КОНФИГ SUPABASE ---
 const SUPABASE_URL = 'https://rfjruwbeiaahegzmowcc.supabase.co';
-const SUPABASE_KEY = 'Sb_publishable_w-O7hFKLFuTuUjknCwBeCA_oANkIZ6_'; 
+const SUPABASE_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmanJ1d2JlaWFhaGVnem1vd2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDMyMjgsImV4cCI6MjA4OTUxOTIyOH0.59jjm9JpMy3m8oZXTfomS4PuTYjDgTfZiSfhCNksPt8'; 
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // --- TELEGRAM DATA ---
@@ -72,15 +60,27 @@ const playerName = tg.initDataUnsafe?.user?.username || tg.initDataUnsafe?.user?
 
 // --- ЛОГИКА БАЗЫ ---
 async function saveScore(s) {
-    await _supabase.from('records').insert([{ username: playerName, score: s }]);
-    loadLeaderboard();
+    const { error } = await _supabase.from('records').insert([{ username: playerName, score: s }]);
+    if (error) {
+        console.error("Ошибка сохранения:", error.message);
+    } else {
+        loadLeaderboard();
+    }
 }
 
 async function loadLeaderboard() {
-    const { data } = await _supabase.from('records').select('*').order('score', { ascending: false }).limit(10);
     const list = document.getElementById('leader-list');
-    if (data) {
+    const { data, error } = await _supabase.from('records').select('*').order('score', { ascending: false }).limit(10);
+    
+    if (error) {
+        list.innerHTML = "<div style='color:#ff4444'>Ошибка: " + error.message + "</div>";
+        return;
+    }
+
+    if (data && data.length > 0) {
         list.innerHTML = data.map((p, i) => `<div class="leader-item"><span>${i+1}. ${p.username}</span><span>${p.score}</span></div>`).join('');
+    } else {
+        list.innerHTML = "<div style='opacity:0.5'>Таблица пока пуста...</div>";
     }
 }
 loadLeaderboard();
@@ -193,3 +193,4 @@ draw();
 </script>
 </body>
 </html>
+
