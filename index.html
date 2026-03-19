@@ -10,7 +10,7 @@
     <div class="app">
         <div class="header">
             <div class="balance"><span id="cash-display">0</span> СУМ</div>
-            <div class="income-info" id="income-display">ДОХОД: 0 / СЕК</div>
+            <div id="income-display" style="color:var(--gold); font-size:12px; margin-top:5px;">ДОХОД: 0 / СЕК</div>
         </div>
 
         <div class="char-container">ФУНДАМЕНТ ЗАЛОЖЕН</div>
@@ -21,15 +21,15 @@
 
         <div class="bottom-nav">
             <button class="nav-item" onclick="openTab('assets')">ИМУЩЕСТВО</button>
-            <button class="nav-item active" id="shop-nav" onclick="openTab('shop')">МАГАЗИН</button>
-            <button class="nav-item" id="code-nav" onclick="openTab('leaderboard')">КОД</button>
+            <button class="nav-item active" id="shop-btn" onclick="openTab('shop')">МАГАЗИН</button>
+            <button class="nav-item" id="code-btn" onclick="openTab('code')">КОД</button>
         </div>
     </div>
 
     <div id="main-overlay" class="overlay">
         <div class="overlay-header">
             <button class="static-back-btn" onclick="goBack()">← НАЗАД</button>
-            <div class="overlay-balance"><span id="overlay-balance-val">0</span> СУМ</div>
+            <div class="overlay-balance"><span id="ov-cash">0</span> СУМ</div>
         </div>
         <div id="main-content" class="overlay-content"></div>
     </div>
