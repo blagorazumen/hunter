@@ -40,51 +40,91 @@
             align-items: center; cursor: pointer; z-index: 101; pointer-events: auto;
         }
         
-        #menu, #death-screen, #pause-screen {
+        /* Меню экраны */
+        .screen {
             position: fixed; left: 0; top: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); display: none;
+            background: rgba(0,0,0,0.95); display: none;
             flex-direction: column; align-items: center; justify-content: center;
             z-index: 200; padding: 20px;
-        }
+            backdrop-filter: blur(5px);
+        }        
+        .screen.active { display: flex; }
         
-        h1 { color: #ff00ff; font-size: 36px; text-shadow: 3px 3px #000; margin-bottom: 20px; }        
+        h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #00ffff33; margin-bottom: 20px; letter-spacing: 2px; }
+        h2 { color: #00ffff; font-size: 24px; margin-bottom: 20px; text-transform: uppercase; }
+        
         .menu-btn {
             background: #ff00ff; border: 2px solid #ff00ff;
-            padding: 15px 30px; color: #fff; font-size: 16px;
-            border-radius: 10px; cursor: pointer; font-weight: bold;
-            margin: 8px 0; width: min(260px, 85%); box-shadow: 0 5px #990099;
+            padding: 15px 30px; color: #fff; font-size: 18px;
+            border-radius: 60px; cursor: pointer; font-weight: bold;
+            margin: 8px 0; width: min(280px, 90%); box-shadow: 0 5px #990099;
+            transition: all 0.05s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .menu-btn:active { transform: translateY(3px); box-shadow: 0 2px #990099; }
-        .btn-free { background: #00ffff; border-color: #00ffff; box-shadow: 0 5px #009999; color: #000; }
+        .menu-btn:active { transform: translateY(4px); box-shadow: 0 1px #990099; }
+        .btn-secondary { background: #00ffff; border-color: #00ffff; box-shadow: 0 5px #009999; color: #000; }
+        .btn-outline { background: transparent; color: #ff00ff; border: 2px solid #ff00ff; box-shadow: none; }
+        .btn-outline:active { transform: translateY(2px); background: #ff00ff22; }
         
         .player-profile {
-            display: flex; align-items: center; gap: 10px; margin-bottom: 15px;
-            padding: 10px 15px; background: rgba(0,255,255,0.1);
-            border: 1px solid #00ffff; border-radius: 8px;
+            display: flex; align-items: center; gap: 15px; margin-bottom: 25px;
+            padding: 12px 25px; background: rgba(255,0,255,0.1);
+            border: 2px solid #ff00ff; border-radius: 60px;
+            width: min(320px, 90%);
         }
         .player-avatar {
-            width: 40px; height: 40px; border-radius: 50%;
+            width: 50px; height: 50px; border-radius: 50%;
             background: linear-gradient(145deg, #ff00ff, #00ffff);
             display: flex; align-items: center; justify-content: center;
-            font-size: 20px; font-weight: bold;
+            font-size: 28px; font-weight: bold;
         }
-        .player-info { text-align: left; }
-        .player-name { color: #00ffff; font-weight: bold; font-size: 14px; }
-        .player-best { color: #ff00ff; font-size: 12px; }
+        .player-info { text-align: left; flex: 1; }
+        .player-name { color: #00ffff; font-weight: bold; font-size: 16px; }
+        .player-best { color: #ff00ff; font-size: 14px; }
         
         #leaderboard {
-            margin-top: 20px; width: min(90%, 320px);
-            background: rgba(255,0,255,0.1); border: 1px solid #ff00ff;
-            border-radius: 8px; padding: 12px; font-size: 12px;
-            max-height: 30vh; overflow-y: auto;
+            width: min(90%, 340px); margin: 20px 0;
+            background: rgba(0,255,255,0.05); border: 2px solid #00ffff;
+            border-radius: 20px; padding: 15px; font-size: 14px;
+            max-height: 35vh; overflow-y: auto;
         }
         .leader-item {
             display: flex; justify-content: space-between;
-            border-bottom: 1px dashed #444; padding: 5px 0;
+            border-bottom: 1px solid #ff00ff33; padding: 8px 5px;
+        }
+        
+        /* Магазин скинов */
+        .shop-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;            width: min(340px, 100%); margin: 20px 0;
+        }
+        .skin-card {
+            background: rgba(255,0,255,0.1); border: 2px solid #ff00ff;
+            border-radius: 16px; padding: 15px 5px;
+            display: flex; flex-direction: column; align-items: center;
+            gap: 8px; transition: 0.1s;
+        }
+        .skin-card.selected { border-color: #00ffff; background: rgba(0,255,255,0.1); }
+        .skin-emoji { font-size: 48px; filter: drop-shadow(0 4px #ff00ff); }
+        .skin-name { color: #fff; font-size: 14px; font-weight: bold; }
+        .skin-price { color: #ffff00; font-size: 16px; font-weight: bold; }
+        .buy-skin-btn {
+            background: #00ffff; border: none; color: #000; font-weight: bold;
+            padding: 8px 20px; border-radius: 30px; font-size: 14px;
+            width: 100%; box-shadow: 0 3px #009999;
+        }
+        .buy-skin-btn:active { transform: translateY(2px); box-shadow: 0 1px #009999; }
+        .buy-skin-btn.owned { background: #444; color: #888; box-shadow: none; pointer-events: none; }
+        
+        .back-btn {
+            background: transparent; border: 2px solid #ff00ff;
+            color: #ff00ff; margin-top: 15px; width: min(200px, 80%);
         }
         
         #death-screen h1 { color: #00ffff; }
-        #death-msg { color: #ff00ff; font-size: 20px; margin-bottom: 20px; font-weight: bold; }
+        #death-msg { color: #ff00ff; font-size: 20px; margin-bottom: 10px; font-weight: bold; }
+        .death-buttons { display: flex; gap: 15px; margin-top: 20px; }
+        .death-buttons .menu-btn { width: 130px; margin: 0; }
         
         #cutscene {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -94,12 +134,18 @@
         #cutscene img { max-width: 95%; max-height: 70vh; border: 3px solid #ff00ff; border-radius: 8px; }
         
         .save-status { font-size: 11px; color: #00ff00; margin-top: 10px; }
+        
+        .menu-container {
+            display: flex; flex-direction: column; align-items: center;
+            width: 100%; max-width: 400px;
+        }
     </style>
 </head>
-<body>    <div id="ui">
+<body>
+    <!-- Игровой UI -->
+    <div id="ui">
         <div class="ui-stats">
-            <div class="score-text">SCORE: <span id="score">0</span></div>
-            <div class="pill-text">PILLS: <span id="pills-count">0</span></div>
+            <div class="score-text">SCORE: <span id="score">0</span></div>            <div class="pill-text">PILLS: <span id="pills-count">0</span></div>
         </div>
         <div class="ui-controls">
             <button id="buy-btn" class="btn-action btn-buy" onclick="buyBoost()">КУПИТЬ (10💊)</button>
@@ -109,43 +155,76 @@
     
     <button id="pause-btn" class="btn-pause" onclick="togglePause()">⏸</button>
     
-    <div id="menu" style="display:flex;">
-        <h1>✨ КСЮШАЧКА^ ✨</h1>
-        <div class="player-profile">
-            <div class="player-avatar">👤</div>
-            <div class="player-info">
-                <div class="player-name" id="player-name">Игрок</div>
-                <div class="player-best">Лучший: <span id="best-score">0</span></div>
+    <!-- ГЛАВНОЕ МЕНЮ -->
+    <div id="main-menu" class="screen active">
+        <div class="menu-container">
+            <h1>КСЮШАЧКА^</h1>
+            
+            <div class="player-profile">
+                <div class="player-avatar" id="player-avatar">👤</div>
+                <div class="player-info">
+                    <div class="player-name" id="player-name">Игрок</div>
+                    <div class="player-best">Лучший: <span id="best-score">0</span></div>
+                </div>
             </div>
+
+            <div id="leaderboard">
+                <div style="font-weight:bold; color:#00ffff; margin-bottom:12px; text-align:center;">🏆 ЛИДЕРЫ 🏆</div>
+                <div id="leader-list">Загрузка...</div>
+            </div>
+
+            <button class="menu-btn" onclick="showModeSelect()">▶ ИГРАТЬ</button>
+            <button class="menu-btn btn-secondary" onclick="showShop()">🛒 МАГАЗИН</button>
+            
+            <div class="save-status" id="menu-save-status"></div>
         </div>
-        <button class="menu-btn" onclick="startGame('STORY')">📖 СЮЖЕТ</button>
-        <button class="menu-btn btn-free" onclick="startGame('FREE')">🎮 СВОБОДНЫЙ ЗАБЕГ</button>
-        <div id="leaderboard">
-            <div style="font-weight:bold;color:#00ffff;margin-bottom:8px;">🏅 ТОП-10:</div>
-            <div id="leader-list">Нажми чтобы обновить</div>
-        </div>
-        <div class="save-status" id="menu-save-status"></div>
     </div>
 
-    <div id="death-screen">
-        <h1>💀 ППЦ;)</h1>
+    <!-- МЕНЮ ВЫБОРА РЕЖИМА -->
+    <div id="mode-select" class="screen">
+        <h2>ВЫБОР РЕЖИМА</h2>
+        <button class="menu-btn" onclick="startGame('STORY')">📖 СЮЖЕТ</button>
+        <button class="menu-btn btn-secondary" onclick="startGame('FREE')">🏃 СВОБОДНЫЙ ЗАБЕГ</button>
+        <button class="menu-btn btn-outline back-btn" onclick="hideModeSelect()">◀ НАЗАД</button>
+    </div>
+
+    <!-- МАГАЗИН СКИНОВ -->
+    <div id="shop-menu" class="screen">
+        <h2>МАГАЗИН СКИНОВ</h2>
+        <div style="color:#ffff00; font-size:24px; margin-bottom:15px;">💊 <span id="shop-pills">0</span></div>
+        
+        <div class="shop-grid" id="skin-shop">
+            <!-- Динамически через JS -->        </div>
+        
+        <button class="menu-btn btn-outline back-btn" onclick="hideShop()">◀ НАЗАД</button>
+    </div>
+
+    <!-- ЭКРАН СМЕРТИ -->
+    <div id="death-screen" class="screen">
+        <h1>💀 ППЦ ;(</h1>
         <div id="death-msg"></div>
-        <div style="margin-bottom:20px;color:#ffff00">Счёт: <span id="final-score">0</span></div>
-        <button class="menu-btn" onclick="returnToMenu()">🏠 В МЕНЮ</button>
+        <div style="font-size:28px; margin:15px 0; color:#ffff00">СЧЁТ: <span id="final-score">0</span></div>
+        <div class="death-buttons">
+            <button class="menu-btn" onclick="restartGame()">ЕЩЁ</button>
+            <button class="menu-btn btn-secondary" onclick="returnToMainMenu()">МЕНЮ</button>
+        </div>
     </div>
     
-    <div id="pause-screen">
+    <!-- ПАУЗА -->
+    <div id="pause-screen" class="screen">
         <h1>⏸ ПАУЗА</h1>
         <button class="menu-btn" onclick="togglePause()">▶ ПРОДОЛЖИТЬ</button>
-        <button class="menu-btn btn-free" onclick="returnToMenu()">🏠 В МЕНЮ</button>
+        <button class="menu-btn btn-secondary" onclick="returnToMainMenu()">🏠 В МЕНЮ</button>
     </div>
 
+    <!-- КАТСЦЕНА -->
     <div id="cutscene">
         <img id="cutscene-img" src="" alt="">
         <button id="next-btn" class="menu-btn" style="margin-top:20px">ДАЛЕЕ →</button>
     </div>
 
     <canvas id="game"></canvas>
+
 <script>
 // Supabase
 const SUPABASE_URL = 'https://rfjruwbeiaahegzmowcc.supabase.co';
@@ -164,8 +243,7 @@ let settings = { haptic: true };
 function loadSettings() {
     try {
         const s = localStorage.getItem('ksshashka_settings');
-        if (s) settings = JSON.parse(s);
-    } catch(e) {}
+        if (s) settings = JSON.parse(s);    } catch(e) {}
 }
 function saveSettings() { 
     try { localStorage.setItem('ksshashka_settings', JSON.stringify(settings)); } catch(e) {}
@@ -178,6 +256,15 @@ let gameState = 'MENU', gameMode = 'STORY', score = 0;
 let gameSpeed = 7.2, houseX = -5000;
 let isBoostActive = false, boostFrames = 0, isPaused = false;
 
+// Скины
+let selectedSkin = localStorage.getItem('selectedSkin') || 'default';
+let ownedSkins = new Set(JSON.parse(localStorage.getItem('ownedSkins') || '["default"]'));
+
+const skins = {
+    'default': { emoji: '👤', name: 'Ксюша', price: 50 },
+    'sport': { emoji: '🏃', name: 'Спорт', price: 50 }
+};
+
 // Haptic
 function haptic(type) {
     if (!settings.haptic) return;
@@ -188,13 +275,125 @@ function haptic(type) {
     } catch(e) {}
 }
 
-// Supabase functions with timeout
+// Управление экранами
+function showModeSelect() {
+    document.getElementById('main-menu').classList.remove('active');
+    document.getElementById('mode-select').classList.add('active');
+}
+
+function hideModeSelect() {
+    document.getElementById('mode-select').classList.remove('active');
+    document.getElementById('main-menu').classList.add('active');
+}
+
+function showShop() {
+    document.getElementById('main-menu').classList.remove('active');
+    document.getElementById('shop-menu').classList.add('active');
+    updateShopDisplay();
+}
+
+function hideShop() {    document.getElementById('shop-menu').classList.remove('active');
+    document.getElementById('main-menu').classList.add('active');
+}
+
+function returnToMainMenu() {
+    gameState = 'MENU';
+    document.getElementById('death-screen').classList.remove('active');
+    document.getElementById('pause-screen').classList.remove('active');
+    document.getElementById('mode-select').classList.remove('active');
+    document.getElementById('shop-menu').classList.remove('active');
+    document.getElementById('main-menu').classList.add('active');
+    document.getElementById('ui').style.display = 'none';
+    document.getElementById('pause-btn').style.display = 'none';
+    
+    try { tg.BackButton.hide(); } catch(e) {}
+    loadLeaderboard();
+    fetchUserData();
+}
+
+// Магазин скинов
+function updateShopDisplay() {
+    document.getElementById('shop-pills').innerText = pillsDb;
+    
+    const shopEl = document.getElementById('skin-shop');
+    shopEl.innerHTML = '';
+    
+    Object.entries(skins).forEach(([id, skin]) => {
+        const owned = ownedSkins.has(id);
+        const selected = selectedSkin === id;
+        
+        const card = document.createElement('div');
+        card.className = `skin-card ${selected ? 'selected' : ''}`;
+        card.innerHTML = `
+            <div class="skin-emoji">${skin.emoji}</div>
+            <div class="skin-name">${skin.name}</div>
+            <div class="skin-price">${skin.price}💊</div>
+            <button class="buy-skin-btn ${owned ? 'owned' : ''}" 
+                onclick="buySkin('${id}')" ${owned ? 'disabled' : ''}>
+                ${owned ? (selected ? 'ВЫБРАН' : 'КУПЛЕНО') : 'КУПИТЬ'}
+            </button>
+        `;
+        shopEl.appendChild(card);
+    });
+}
+
+function buySkin(skinId) {
+    const skin = skins[skinId];
+    if (!skin) return;
+    
+    if (ownedSkins.has(skinId)) {        // Если уже есть - выбираем
+        selectedSkin = skinId;
+        localStorage.setItem('selectedSkin', skinId);
+        document.getElementById('player-avatar').innerText = skin.emoji;
+        loadSkinSprites(skinId); // Загружаем спрайты нового скина
+        haptic('light');
+        updateShopDisplay();
+        quickSave();
+        return;
+    }
+    
+    if (pillsDb >= skin.price) {
+        pillsDb -= skin.price;
+        ownedSkins.add(skinId);
+        selectedSkin = skinId;
+        
+        localStorage.setItem('ownedSkins', JSON.stringify([...ownedSkins]));
+        localStorage.setItem('selectedSkin', skinId);
+        
+        document.getElementById('player-avatar').innerText = skin.emoji;
+        document.getElementById('pills-count').innerText = pillsDb;
+        loadSkinSprites(skinId); // Загружаем спрайты нового скина
+        
+        haptic('success');
+        updateShopDisplay();
+        quickSave();
+    } else {
+        haptic('error');
+        alert('Не хватает таблеток!');
+    }
+}
+
+// Загрузка спрайтов для скина
+function loadSkinSprites(skinName) {
+    // Загружаем спрайты для выбранного скина
+    imgs.run[0] = new Image();
+    imgs.run[1] = new Image();
+    imgs.run[2] = new Image();
+    imgs.jump = new Image();
+    
+    imgs.run[0].src = `${skinName}_run_1.png`;
+    imgs.run[1].src = `${skinName}_run_2.png`;
+    imgs.run[2].src = `${skinName}_run_3.png`;
+    imgs.jump.src = `${skinName}_jump.png`;
+}
+
+// Supabase функции
 async function fetchUserData() {
     document.getElementById('menu-save-status').innerText = '⏳ Загрузка...';
-    
-    try {
+        try {
         const promise = _supabase.from('records').select('*').eq('username', playerName).single();
-        const timeout = new Promise((_, reject) =>             setTimeout(() => reject(new Error('Timeout')), 5000)
+        const timeout = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 5000)
         );
         
         const { data, error } = await Promise.race([promise, timeout]);
@@ -205,32 +404,58 @@ async function fetchUserData() {
             pillsDb = data.pills || 0;
             boostsDb = data.speed || 0;
             bestScore = data.score || 0;
+            
+            // Загружаем купленные скины если есть
+            if (data.skins) {
+                ownedSkins = new Set(JSON.parse(data.skins));
+                localStorage.setItem('ownedSkins', data.skins);
+            }
+            
+            // Загружаем выбранный скин
+            if (data.selectedSkin) {
+                selectedSkin = data.selectedSkin;
+                localStorage.setItem('selectedSkin', data.selectedSkin);
+            }
+            
             document.getElementById('pills-count').innerText = pillsDb;
             document.getElementById('boost-count').innerText = boostsDb;
             document.getElementById('best-score').innerText = bestScore;
             document.getElementById('menu-save-status').innerText = '✓ Синхронизировано';
-        } else {
-            document.getElementById('menu-save-status').innerText = '✓ Готов к игре';
         }
+        
+        // Обновляем аватар и загружаем спрайты
+        document.getElementById('player-avatar').innerText = skins[selectedSkin]?.emoji || '👤';
+        loadSkinSprites(selectedSkin);
+        
     } catch(e) {
-        console.log('DB error (playing offline):', e.message);
+        console.log('DB error:', e.message);
         document.getElementById('menu-save-status').innerText = '⚠ Офлайн режим';
+        document.getElementById('player-avatar').innerText = skins[selectedSkin]?.emoji || '👤';
+        loadSkinSprites(selectedSkin);
     }
 }
 
 async function quickSave() {
     try {
-        const promise = _supabase.from('records').select('*').eq('username', playerName).single();
-        const timeout = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 3000)
-        );
+        const { data } = await _supabase.from('records').select('*').eq('username', playerName).single();
         
-        const { data } = await Promise.race([promise, timeout]);
-        
+        const skinData = JSON.stringify([...ownedSkins]);        
         if (data) {
-            await _supabase.from('records').update({ pills: pillsDb, speed: boostsDb }).eq('username', playerName);
+            await _supabase.from('records').update({ 
+                pills: pillsDb, 
+                speed: boostsDb,
+                skins: skinData,
+                selectedSkin: selectedSkin
+            }).eq('username', playerName);
         } else {
-            await _supabase.from('records').insert([{ username: playerName, score: 0, pills: pillsDb, speed: boostsDb }]);
+            await _supabase.from('records').insert([{ 
+                username: playerName, 
+                score: bestScore, 
+                pills: pillsDb, 
+                speed: boostsDb,
+                skins: skinData,
+                selectedSkin: selectedSkin
+            }]);
         }
     } catch(e) {
         console.log('Save failed:', e.message);
@@ -241,13 +466,29 @@ async function saveProgress(s) {
     if (s > bestScore) bestScore = s;
     try {
         const { data } = await _supabase.from('records').select('*').eq('username', playerName).single();
+        
+        const skinData = JSON.stringify([...ownedSkins]);
+        
         if (data) {
-            await _supabase.from('records').update({ score: bestScore, pills: pillsDb, speed: boostsDb }).eq('username', playerName);
-        } else {            await _supabase.from('records').insert([{ username: playerName, score: bestScore, pills: pillsDb, speed: boostsDb }]);
+            await _supabase.from('records').update({ 
+                score: bestScore, 
+                pills: pillsDb, 
+                speed: boostsDb,
+                skins: skinData,
+                selectedSkin: selectedSkin
+            }).eq('username', playerName);
+        } else {
+            await _supabase.from('records').insert([{ 
+                username: playerName, 
+                score: bestScore, 
+                pills: pillsDb, 
+                speed: boostsDb,
+                skins: skinData,
+                selectedSkin: selectedSkin
+            }]);
         }
         loadLeaderboard();
-    } catch(e) {
-        console.log('Progress save failed:', e.message);
+    } catch(e) {        console.log('Progress save failed:', e.message);
     }
 }
 
@@ -292,12 +533,11 @@ const groundY = canvas.height - (canvas.height / 3.5);
 const imgs = {
     bg: new Image(), beer: new Image(), pills: new Image(), jump: new Image(),
     run: [new Image(), new Image(), new Image()], house: new Image()
-};imgs.bg.src = 'bg.png'; imgs.beer.src = 'beer.png'; imgs.pills.src = 'pills.png';
-imgs.jump.src = 'jump.png'; imgs.run[0].src = 'run_1.png'; imgs.run[1].src = 'run_2.png';
-imgs.run[2].src = 'run_3.png'; imgs.house.src = 'house.png';
+};
+imgs.bg.src = 'bg.png'; imgs.beer.src = 'beer.png'; imgs.pills.src = 'pills.png';
+imgs.house.src = 'house.png';
 
-// Cutscenes
-const slides = ['end_1.jpg','end_2.jpg','end_3.jpg','end_4.jpg','end_5.jpg'];
+// Cutscenesconst slides = ['end_1.jpg','end_2.jpg','end_3.jpg','end_4.jpg','end_5.jpg'];
 const phrases = ["АНДЕГРАУНД ПАЛЮБОМУ","ЧИЛАНЗАРСКИЕ ДВОРИКИ ЖДУТ","ТЫ ЖЕ ПИТЬ БРОСИЛА","КИБРАЙ ОКАЗАЛСЯ СИЛЬНЕЕ","ЭТО ТЕБЕ НЕ ВПИСКА"];
 let currentSlide = 0;
 
@@ -334,39 +574,43 @@ function activateBoost() {
 
 // Start game
 function startGame(mode) {
-    gameMode = mode; gameState = 'PLAYING'; isPaused = false; score = 0; houseX = -5000;
-    obstacles = []; collectables = []; particles = []; isBoostActive = false; boostFrames = 0;
-    player.y = groundY - player.h; player.dy = 0; player.grounded = true;
-    
-    document.getElementById('menu').style.display = 'none';
-    document.getElementById('death-screen').style.display = 'none';
-    document.getElementById('pause-screen').style.display = 'none';
-    document.getElementById('ui').style.display = 'flex';    document.getElementById('pause-btn').style.display = 'flex';
+    gameMode = mode; 
+    gameState = 'PLAYING'; 
+    isPaused = false; 
+    score = 0; 
+    houseX = -5000;
+    obstacles = []; 
+    collectables = []; 
+    particles = []; 
+    isBoostActive = false; 
+    boostFrames = 0;
+    player.y = groundY - player.h; 
+    player.dy = 0; 
+    player.grounded = true;    
+    // Скрываем все меню
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('ui').style.display = 'flex';    
+    document.getElementById('pause-btn').style.display = 'flex';
     document.getElementById('score').innerText = '0';
     
     try { tg.BackButton.show(); tg.BackButton.onClick(() => togglePause()); } catch(e) {}
     haptic('light');
 }
 
+// Перезапуск игры (кнопка "ЕЩЁ")
+function restartGame() {
+    startGame(gameMode); // Используем тот же режим
+}
+
 // Pause
 function togglePause() {
     if (gameState !== 'PLAYING') return;
     isPaused = !isPaused;
-    document.getElementById('pause-screen').style.display = isPaused ? 'flex' : 'none';
-    if (!isPaused) { try { tg.BackButton.show(); } catch(e) {} }
-}
-
-// Return to menu
-function returnToMenu() {
-    gameState = 'MENU';
-    document.getElementById('death-screen').style.display = 'none';
-    document.getElementById('pause-screen').style.display = 'none';
-    document.getElementById('ui').style.display = 'none';
-    document.getElementById('pause-btn').style.display = 'none';
-    document.getElementById('menu').style.display = 'flex';
-    try { tg.BackButton.hide(); } catch(e) {}
-    loadLeaderboard();
-    fetchUserData();
+    if (isPaused) {
+        document.getElementById('pause-screen').classList.add('active');
+    } else {
+        document.getElementById('pause-screen').classList.remove('active');
+    }
 }
 
 // Update
@@ -390,8 +634,8 @@ function update() {
     
     if (gameMode === 'STORY' && score >= 28 && houseX < -1000) houseX = canvas.width;
     if (houseX > -1000) {
-        houseX -= speed;        if (player.x + player.w > houseX + 100) {
-            gameState = 'CUT';
+        houseX -= speed;        
+        if (player.x + player.w > houseX + 100) {            gameState = 'CUT';
             canvas.style.filter = 'brightness(0)';
             setTimeout(startCutscene, 2000);
         }
@@ -407,12 +651,14 @@ function update() {
             screenShake = 20;
             haptic('heavy');
             if (gameMode === 'FREE') saveProgress(score);
+            
             document.getElementById('death-msg').innerText = phrases[Math.floor(Math.random() * phrases.length)];
             document.getElementById('final-score').innerText = score;
             canvas.style.filter = 'none';
             document.getElementById('ui').style.display = 'none';
             document.getElementById('pause-btn').style.display = 'none';
-            document.getElementById('death-screen').style.display = 'flex';
+            document.getElementById('death-screen').classList.add('active');
+            
             try { tg.BackButton.hide(); } catch(e) {}
         }
         
@@ -438,8 +684,8 @@ function update() {
         (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 300)) {
         obstacles.push({ x: canvas.width, y: groundY - 75, w: 45, h: 75 });
     }
-    if (Math.random() < 0.015 && collectables.length === 0) {
-        collectables.push({ x: canvas.width, y: groundY - 140, w: 40, h: 40 });    }
+    if (Math.random() < 0.015 && collectables.length === 0) {        collectables.push({ x: canvas.width, y: groundY - 140, w: 40, h: 40 });
+    }
     
     for (let i = particles.length - 1; i >= 0; i--) {
         particles[i].x += particles[i].vx;
@@ -487,8 +733,8 @@ function draw() {
             ctx.fillStyle = p.color;
             ctx.beginPath();
             ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-            ctx.fill();
-        });        ctx.globalAlpha = 1;
+            ctx.fill();        });
+        ctx.globalAlpha = 1;
     }
     
     requestAnimationFrame(draw);
@@ -526,22 +772,25 @@ function showSlide() {
     }
 }
 
-document.getElementById('next-btn').onclick = () => { currentSlide++; showSlide(); };
+document.getElementById('next-btn').onclick = () => { 
+    currentSlide++; 
+    showSlide(); 
+};
 
 function jump(e) {
     if (gameState === 'PLAYING' && !isPaused && player.grounded && e.target.tagName !== 'BUTTON') {
         player.dy = -player.jf;
         player.grounded = false;
         haptic('medium');
-    }
-}
+    }}
 window.addEventListener('touchstart', jump);
 window.addEventListener('mousedown', jump);
-window.addEventListener('keydown', (e) => {    if (e.code === 'Space' || e.code === 'ArrowUp') jump(e);
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') jump(e);
     if (e.code === 'Escape') togglePause();
 });
 
-// Init - загружаем данные, но не ждём вечно
+// Init
 fetchUserData();
 loadLeaderboard();
 setInterval(update, 1000/60);
