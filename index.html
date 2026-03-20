@@ -94,27 +94,38 @@
             border-bottom: 1px solid #ff00ff33; padding: 8px 5px;
         }
         
-        /* Магазин скинов */
-        .shop-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;            width: min(340px, 100%); margin: 20px 0;
+        /* Выбор скинов */
+        .skins-grid {
+            display: grid; grid-template-columns: 1fr; gap: 12px;            width: min(340px, 100%); margin: 20px 0;
         }
         .skin-card {
             background: rgba(255,0,255,0.1); border: 2px solid #ff00ff;
-            border-radius: 16px; padding: 15px 5px;
-            display: flex; flex-direction: column; align-items: center;
-            gap: 8px; transition: 0.1s;
+            border-radius: 16px; padding: 15px;
+            display: flex; align-items: center; gap: 15px;
+            transition: 0.1s; cursor: pointer;
         }
-        .skin-card.selected { border-color: #00ffff; background: rgba(0,255,255,0.1); }
-        .skin-emoji { font-size: 48px; filter: drop-shadow(0 4px #ff00ff); }
-        .skin-name { color: #fff; font-size: 14px; font-weight: bold; }
-        .skin-price { color: #ffff00; font-size: 16px; font-weight: bold; }
-        .buy-skin-btn {
-            background: #00ffff; border: none; color: #000; font-weight: bold;
-            padding: 8px 20px; border-radius: 30px; font-size: 14px;
-            width: 100%; box-shadow: 0 3px #009999;
+        .skin-card:hover { background: rgba(255,0,255,0.2); }
+        .skin-card.selected { border-color: #00ffff; background: rgba(0,255,255,0.15); }
+        .skin-preview { 
+            font-size: 42px; 
+            width: 60px; 
+            height: 60px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
         }
-        .buy-skin-btn:active { transform: translateY(2px); box-shadow: 0 1px #009999; }
-        .buy-skin-btn.owned { background: #444; color: #888; box-shadow: none; pointer-events: none; }
+        .skin-info { flex: 1; }
+        .skin-name { color: #fff; font-size: 18px; font-weight: bold; }
+        .skin-desc { color: #aaa; font-size: 13px; }
+        .skin-check { 
+            font-size: 24px; 
+            color: #00ffff; 
+            opacity: 0; 
+            transition: 0.1s;
+        }
+        .skin-card.selected .skin-check { opacity: 1; }
         
         .back-btn {
             background: transparent; border: 2px solid #ff00ff;
@@ -134,8 +145,7 @@
         #cutscene img { max-width: 95%; max-height: 70vh; border: 3px solid #ff00ff; border-radius: 8px; }
         
         .save-status { font-size: 11px; color: #00ff00; margin-top: 10px; }
-        
-        .menu-container {
+                .menu-container {
             display: flex; flex-direction: column; align-items: center;
             width: 100%; max-width: 400px;
         }
@@ -145,7 +155,8 @@
     <!-- Игровой UI -->
     <div id="ui">
         <div class="ui-stats">
-            <div class="score-text">SCORE: <span id="score">0</span></div>            <div class="pill-text">PILLS: <span id="pills-count">0</span></div>
+            <div class="score-text">SCORE: <span id="score">0</span></div>
+            <div class="pill-text">PILLS: <span id="pills-count">0</span></div>
         </div>
         <div class="ui-controls">
             <button id="buy-btn" class="btn-action btn-buy" onclick="buyBoost()">КУПИТЬ (10💊)</button>
@@ -174,7 +185,7 @@
             </div>
 
             <button class="menu-btn" onclick="showModeSelect()">▶ ИГРАТЬ</button>
-            <button class="menu-btn btn-secondary" onclick="showShop()">🛒 МАГАЗИН</button>
+            <button class="menu-btn btn-secondary" onclick="showSkins()">🎨 СКИНЫ</button>
             
             <div class="save-status" id="menu-save-status"></div>
         </div>
@@ -183,20 +194,20 @@
     <!-- МЕНЮ ВЫБОРА РЕЖИМА -->
     <div id="mode-select" class="screen">
         <h2>ВЫБОР РЕЖИМА</h2>
-        <button class="menu-btn" onclick="startGame('STORY')">📖 СЮЖЕТ</button>
-        <button class="menu-btn btn-secondary" onclick="startGame('FREE')">🏃 СВОБОДНЫЙ ЗАБЕГ</button>
+        <button class="menu-btn" onclick="startGame('STORY')">📖 СЮЖЕТ</button>        <button class="menu-btn btn-secondary" onclick="startGame('FREE')">🏃 СВОБОДНЫЙ ЗАБЕГ</button>
         <button class="menu-btn btn-outline back-btn" onclick="hideModeSelect()">◀ НАЗАД</button>
     </div>
 
-    <!-- МАГАЗИН СКИНОВ -->
-    <div id="shop-menu" class="screen">
-        <h2>МАГАЗИН СКИНОВ</h2>
-        <div style="color:#ffff00; font-size:24px; margin-bottom:15px;">💊 <span id="shop-pills">0</span></div>
+    <!-- ВЫБОР СКИНОВ -->
+    <div id="skins-menu" class="screen">
+        <h2>ВЫБОР СКИНА</h2>
+        <div style="color:#00ffff; font-size:16px; margin-bottom:15px;">Выбери свой стиль</div>
         
-        <div class="shop-grid" id="skin-shop">
-            <!-- Динамически через JS -->        </div>
+        <div class="skins-grid" id="skins-list">
+            <!-- Динамически через JS -->
+        </div>
         
-        <button class="menu-btn btn-outline back-btn" onclick="hideShop()">◀ НАЗАД</button>
+        <button class="menu-btn btn-outline back-btn" onclick="hideSkins()">◀ НАЗАД</button>
     </div>
 
     <!-- ЭКРАН СМЕРТИ -->
@@ -232,8 +243,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Telegram
-const tg = window.Telegram.WebApp;
-tg.ready();
+const tg = window.Telegram.WebApp;tg.ready();
 tg.expand();
 const playerName = tg.initDataUnsafe?.user?.username || tg.initDataUnsafe?.user?.first_name || "Player";
 document.getElementById('player-name').innerText = playerName;
@@ -243,7 +253,8 @@ let settings = { haptic: true };
 function loadSettings() {
     try {
         const s = localStorage.getItem('ksshashka_settings');
-        if (s) settings = JSON.parse(s);    } catch(e) {}
+        if (s) settings = JSON.parse(s);
+    } catch(e) {}
 }
 function saveSettings() { 
     try { localStorage.setItem('ksshashka_settings', JSON.stringify(settings)); } catch(e) {}
@@ -258,11 +269,11 @@ let isBoostActive = false, boostFrames = 0, isPaused = false;
 
 // Скины
 let selectedSkin = localStorage.getItem('selectedSkin') || 'default';
-let ownedSkins = new Set(JSON.parse(localStorage.getItem('ownedSkins') || '["default"]'));
 
 const skins = {
-    'default': { emoji: '👤', name: 'Ксюша', price: 50 },
-    'sport': { emoji: '🏃', name: 'Спорт', price: 50 }
+    'default': { emoji: '👤', name: 'Дефолт', desc: 'Классическая Ксюша' },
+    'street': { emoji: '🧥', name: 'Уличный', desc: 'Худи и стиль' },
+    'sport': { emoji: '🏃', name: 'Спорт', desc: 'Треки и кроссы' }
 };
 
 // Haptic
@@ -281,18 +292,18 @@ function showModeSelect() {
     document.getElementById('mode-select').classList.add('active');
 }
 
-function hideModeSelect() {
-    document.getElementById('mode-select').classList.remove('active');
+function hideModeSelect() {    document.getElementById('mode-select').classList.remove('active');
     document.getElementById('main-menu').classList.add('active');
 }
 
-function showShop() {
+function showSkins() {
     document.getElementById('main-menu').classList.remove('active');
-    document.getElementById('shop-menu').classList.add('active');
-    updateShopDisplay();
+    document.getElementById('skins-menu').classList.add('active');
+    updateSkinsDisplay();
 }
 
-function hideShop() {    document.getElementById('shop-menu').classList.remove('active');
+function hideSkins() {
+    document.getElementById('skins-menu').classList.remove('active');
     document.getElementById('main-menu').classList.add('active');
 }
 
@@ -301,7 +312,7 @@ function returnToMainMenu() {
     document.getElementById('death-screen').classList.remove('active');
     document.getElementById('pause-screen').classList.remove('active');
     document.getElementById('mode-select').classList.remove('active');
-    document.getElementById('shop-menu').classList.remove('active');
+    document.getElementById('skins-menu').classList.remove('active');
     document.getElementById('main-menu').classList.add('active');
     document.getElementById('ui').style.display = 'none';
     document.getElementById('pause-btn').style.display = 'none';
@@ -311,71 +322,40 @@ function returnToMainMenu() {
     fetchUserData();
 }
 
-// Магазин скинов
-function updateShopDisplay() {
-    document.getElementById('shop-pills').innerText = pillsDb;
-    
-    const shopEl = document.getElementById('skin-shop');
-    shopEl.innerHTML = '';
+// Выбор скинов
+function updateSkinsDisplay() {
+    const skinsEl = document.getElementById('skins-list');
+    skinsEl.innerHTML = '';
     
     Object.entries(skins).forEach(([id, skin]) => {
-        const owned = ownedSkins.has(id);
         const selected = selectedSkin === id;
         
         const card = document.createElement('div');
         card.className = `skin-card ${selected ? 'selected' : ''}`;
+        card.onclick = () => selectSkin(id);
         card.innerHTML = `
-            <div class="skin-emoji">${skin.emoji}</div>
-            <div class="skin-name">${skin.name}</div>
-            <div class="skin-price">${skin.price}💊</div>
-            <button class="buy-skin-btn ${owned ? 'owned' : ''}" 
-                onclick="buySkin('${id}')" ${owned ? 'disabled' : ''}>
-                ${owned ? (selected ? 'ВЫБРАН' : 'КУПЛЕНО') : 'КУПИТЬ'}
-            </button>
+            <div class="skin-preview">${skin.emoji}</div>
+            <div class="skin-info">
+                <div class="skin-name">${skin.name}</div>
+                <div class="skin-desc">${skin.desc}</div>
+            </div>
+            <div class="skin-check">✓</div>
         `;
-        shopEl.appendChild(card);
-    });
+        skinsEl.appendChild(card);    });
 }
 
-function buySkin(skinId) {
-    const skin = skins[skinId];
-    if (!skin) return;
-    
-    if (ownedSkins.has(skinId)) {        // Если уже есть - выбираем
-        selectedSkin = skinId;
-        localStorage.setItem('selectedSkin', skinId);
-        document.getElementById('player-avatar').innerText = skin.emoji;
-        loadSkinSprites(skinId); // Загружаем спрайты нового скина
-        haptic('light');
-        updateShopDisplay();
-        quickSave();
-        return;
-    }
-    
-    if (pillsDb >= skin.price) {
-        pillsDb -= skin.price;
-        ownedSkins.add(skinId);
-        selectedSkin = skinId;
-        
-        localStorage.setItem('ownedSkins', JSON.stringify([...ownedSkins]));
-        localStorage.setItem('selectedSkin', skinId);
-        
-        document.getElementById('player-avatar').innerText = skin.emoji;
-        document.getElementById('pills-count').innerText = pillsDb;
-        loadSkinSprites(skinId); // Загружаем спрайты нового скина
-        
-        haptic('success');
-        updateShopDisplay();
-        quickSave();
-    } else {
-        haptic('error');
-        alert('Не хватает таблеток!');
-    }
+function selectSkin(skinId) {
+    selectedSkin = skinId;
+    localStorage.setItem('selectedSkin', skinId);
+    document.getElementById('player-avatar').innerText = skins[skinId].emoji;
+    loadSkinSprites(skinId);
+    haptic('success');
+    updateSkinsDisplay();
+    quickSave();
 }
 
 // Загрузка спрайтов для скина
 function loadSkinSprites(skinName) {
-    // Загружаем спрайты для выбранного скина
     imgs.run[0] = new Image();
     imgs.run[1] = new Image();
     imgs.run[2] = new Image();
@@ -390,7 +370,8 @@ function loadSkinSprites(skinName) {
 // Supabase функции
 async function fetchUserData() {
     document.getElementById('menu-save-status').innerText = '⏳ Загрузка...';
-        try {
+    
+    try {
         const promise = _supabase.from('records').select('*').eq('username', playerName).single();
         const timeout = new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Timeout')), 5000)
@@ -405,18 +386,11 @@ async function fetchUserData() {
             boostsDb = data.speed || 0;
             bestScore = data.score || 0;
             
-            // Загружаем купленные скины если есть
-            if (data.skins) {
-                ownedSkins = new Set(JSON.parse(data.skins));
-                localStorage.setItem('ownedSkins', data.skins);
-            }
-            
             // Загружаем выбранный скин
             if (data.selectedSkin) {
                 selectedSkin = data.selectedSkin;
                 localStorage.setItem('selectedSkin', data.selectedSkin);
-            }
-            
+            }            
             document.getElementById('pills-count').innerText = pillsDb;
             document.getElementById('boost-count').innerText = boostsDb;
             document.getElementById('best-score').innerText = bestScore;
@@ -439,12 +413,10 @@ async function quickSave() {
     try {
         const { data } = await _supabase.from('records').select('*').eq('username', playerName).single();
         
-        const skinData = JSON.stringify([...ownedSkins]);        
         if (data) {
             await _supabase.from('records').update({ 
                 pills: pillsDb, 
                 speed: boostsDb,
-                skins: skinData,
                 selectedSkin: selectedSkin
             }).eq('username', playerName);
         } else {
@@ -453,7 +425,6 @@ async function quickSave() {
                 score: bestScore, 
                 pills: pillsDb, 
                 speed: boostsDb,
-                skins: skinData,
                 selectedSkin: selectedSkin
             }]);
         }
@@ -467,14 +438,10 @@ async function saveProgress(s) {
     try {
         const { data } = await _supabase.from('records').select('*').eq('username', playerName).single();
         
-        const skinData = JSON.stringify([...ownedSkins]);
-        
         if (data) {
-            await _supabase.from('records').update({ 
-                score: bestScore, 
+            await _supabase.from('records').update({                 score: bestScore, 
                 pills: pillsDb, 
                 speed: boostsDb,
-                skins: skinData,
                 selectedSkin: selectedSkin
             }).eq('username', playerName);
         } else {
@@ -483,12 +450,12 @@ async function saveProgress(s) {
                 score: bestScore, 
                 pills: pillsDb, 
                 speed: boostsDb,
-                skins: skinData,
                 selectedSkin: selectedSkin
             }]);
         }
         loadLeaderboard();
-    } catch(e) {        console.log('Progress save failed:', e.message);
+    } catch(e) {
+        console.log('Progress save failed:', e.message);
     }
 }
 
@@ -521,8 +488,7 @@ async function loadLeaderboard() {
     }
 }
 
-// Canvas
-const canvas = document.getElementById('game');
+// Canvasconst canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 resize();
@@ -537,7 +503,8 @@ const imgs = {
 imgs.bg.src = 'bg.png'; imgs.beer.src = 'beer.png'; imgs.pills.src = 'pills.png';
 imgs.house.src = 'house.png';
 
-// Cutscenesconst slides = ['end_1.jpg','end_2.jpg','end_3.jpg','end_4.jpg','end_5.jpg'];
+// Cutscenes
+const slides = ['end_1.jpg','end_2.jpg','end_3.jpg','end_4.jpg','end_5.jpg'];
 const phrases = ["АНДЕГРАУНД ПАЛЮБОМУ","ЧИЛАНЗАРСКИЕ ДВОРИКИ ЖДУТ","ТЫ ЖЕ ПИТЬ БРОСИЛА","КИБРАЙ ОКАЗАЛСЯ СИЛЬНЕЕ","ЭТО ТЕБЕ НЕ ВПИСКА"];
 let currentSlide = 0;
 
@@ -571,7 +538,6 @@ function activateBoost() {
         haptic('heavy'); quickSave();
     }
 }
-
 // Start game
 function startGame(mode) {
     gameMode = mode; 
@@ -586,7 +552,8 @@ function startGame(mode) {
     boostFrames = 0;
     player.y = groundY - player.h; 
     player.dy = 0; 
-    player.grounded = true;    
+    player.grounded = true;
+    
     // Скрываем все меню
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('ui').style.display = 'flex';    
@@ -599,7 +566,7 @@ function startGame(mode) {
 
 // Перезапуск игры (кнопка "ЕЩЁ")
 function restartGame() {
-    startGame(gameMode); // Используем тот же режим
+    startGame(gameMode);
 }
 
 // Pause
@@ -619,8 +586,7 @@ function update() {
     
     const speed = isBoostActive ? gameSpeed * 3 : gameSpeed;
     
-    if (isBoostActive) {
-        boostFrames--;
+    if (isBoostActive) {        boostFrames--;
         if (boostFrames <= 0) { isBoostActive = false; canvas.style.filter = 'none'; }
         else canvas.style.filter = `hue-rotate(${boostFrames*8}deg) saturate(2)`;
     }
@@ -635,7 +601,8 @@ function update() {
     if (gameMode === 'STORY' && score >= 28 && houseX < -1000) houseX = canvas.width;
     if (houseX > -1000) {
         houseX -= speed;        
-        if (player.x + player.w > houseX + 100) {            gameState = 'CUT';
+        if (player.x + player.w > houseX + 100) {
+            gameState = 'CUT';
             canvas.style.filter = 'brightness(0)';
             setTimeout(startCutscene, 2000);
         }
@@ -668,8 +635,7 @@ function update() {
     for (let i = collectables.length - 1; i >= 0; i--) {
         collectables[i].x -= speed;
         const c = collectables[i];
-        
-        if (player.x < c.x + c.w && player.x + player.w > c.x && player.y < c.y + c.h && player.y + player.h > c.y) {
+                if (player.x < c.x + c.w && player.x + player.w > c.x && player.y < c.y + c.h && player.y + player.h > c.y) {
             pillsDb++;
             document.getElementById('pills-count').innerText = pillsDb;
             createParticles(c.x + c.w/2, c.y + c.h/2, 8, '#ff0');
@@ -684,7 +650,8 @@ function update() {
         (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 300)) {
         obstacles.push({ x: canvas.width, y: groundY - 75, w: 45, h: 75 });
     }
-    if (Math.random() < 0.015 && collectables.length === 0) {        collectables.push({ x: canvas.width, y: groundY - 140, w: 40, h: 40 });
+    if (Math.random() < 0.015 && collectables.length === 0) {
+        collectables.push({ x: canvas.width, y: groundY - 140, w: 40, h: 40 });
     }
     
     for (let i = particles.length - 1; i >= 0; i--) {
@@ -717,8 +684,7 @@ function draw() {
         obstacles.forEach(o => {
             if (imgs.beer.complete) ctx.drawImage(imgs.beer, o.x, o.y, o.w, o.h);
             else { ctx.fillStyle = '#f60'; ctx.fillRect(o.x, o.y, o.w, o.h); }
-        });
-        
+        });        
         collectables.forEach(c => {
             if (imgs.pills.complete) ctx.drawImage(imgs.pills, c.x, c.y, c.w, c.h);
             else { ctx.fillStyle = '#ff0'; ctx.beginPath(); ctx.arc(c.x+c.w/2, c.y+c.h/2, c.w/2, 0, Math.PI*2); ctx.fill(); }
@@ -733,7 +699,8 @@ function draw() {
             ctx.fillStyle = p.color;
             ctx.beginPath();
             ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-            ctx.fill();        });
+            ctx.fill();
+        });
         ctx.globalAlpha = 1;
     }
     
@@ -766,8 +733,7 @@ function showSlide() {
     if (currentSlide < slides.length) {
         img.src = slides[currentSlide];
         btn.style.display = 'block';
-    } else {
-        btn.style.display = 'none';
+    } else {        btn.style.display = 'none';
         setTimeout(() => location.reload(), 2000);
     }
 }
@@ -782,7 +748,8 @@ function jump(e) {
         player.dy = -player.jf;
         player.grounded = false;
         haptic('medium');
-    }}
+    }
+}
 window.addEventListener('touchstart', jump);
 window.addEventListener('mousedown', jump);
 window.addEventListener('keydown', (e) => {
