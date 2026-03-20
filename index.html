@@ -46,9 +46,8 @@
             flex-direction: column; align-items: center; justify-content: center;
             z-index: 200; padding: 20px;
             backdrop-filter: blur(5px);
-        }
-                .screen.active { display: flex; }
-        
+        }        
+        .screen.active { display: flex; }        
         h1 { color: #ff00ff; font-size: 42px; text-shadow: 3px 3px #00ffff33; margin-bottom: 20px; letter-spacing: 2px; }
         h2 { color: #00ffff; font-size: 24px; margin-bottom: 20px; text-transform: uppercase; }
         
@@ -96,8 +95,8 @@
         .skins-grid {
             display: grid; grid-template-columns: 1fr; gap: 12px;
             width: min(340px, 100%); margin: 20px 0;
-        }        .skin-card {
-            background: rgba(255,0,255,0.1); border: 2px solid #ff00ff;
+        }
+        .skin-card {            background: rgba(255,0,255,0.1); border: 2px solid #ff00ff;
             border-radius: 16px; padding: 15px;
             display: flex; align-items: center; gap: 15px;
             transition: 0.1s; cursor: pointer;
@@ -143,20 +142,10 @@
         #cutscene img { max-width: 95%; max-height: 70vh; border: 3px solid #ff00ff; border-radius: 8px; }
         
         .save-status { font-size: 11px; color: #00ff00; margin-top: 10px; }
-        
         .menu-container {
-            display: flex; flex-direction: column; align-items: center;            width: 100%; max-width: 400px;
-        }
-
-        /* Отладочная консоль */
-        #debug-console {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(0,0,0,0.9); color: #0f0;
-            font-size: 10px; padding: 10px; max-height: 100px;
-            overflow-y: auto; z-index: 999; display: none;
-            font-family: monospace;
-        }
-    </style>
+            display: flex; flex-direction: column; align-items: center;
+            width: 100%; max-width: 400px;
+        }    </style>
 </head>
 <body>
     <!-- Игровой UI -->
@@ -191,12 +180,20 @@
                 <div id="leader-list">Загрузка...</div>
             </div>
 
-            <button class="menu-btn" onclick="startGame('FREE')">🏃 ИГРАТЬ</button>
+            <button class="menu-btn" onclick="showModeSelect()">▶ ИГРАТЬ</button>
             <button class="menu-btn btn-secondary" onclick="showSkins()">🎨 СКИНЫ</button>
             
-            <div class="save-status" id="menu-save-status"></div>        </div>
+            <div class="save-status" id="menu-save-status"></div>
+        </div>
     </div>
 
+    <!-- МЕНЮ ВЫБОРА РЕЖИМА -->
+    <div id="mode-select" class="screen">
+        <h2>ВЫБОР РЕЖИМА</h2>
+        <button class="menu-btn" onclick="startGame('STORY')">📖 СЮЖЕТ</button>
+        <button class="menu-btn btn-secondary" onclick="startGame('FREE')">🏃 СВОБОДНЫЙ ЗАБЕГ</button>
+        <button class="menu-btn btn-outline back-btn" onclick="hideModeSelect()">◀ НАЗАД</button>
+    </div>
     <!-- ВЫБОР СКИНОВ -->
     <div id="skins-menu" class="screen">
         <h2>ВЫБОР СКИНА</h2>
@@ -225,63 +222,54 @@
         <button class="menu-btn btn-secondary" onclick="returnToMainMenu()">🏠 В МЕНЮ</button>
     </div>
 
+    <!-- КАТСЦЕНА -->
+    <div id="cutscene">
+        <img id="cutscene-img" src="" alt="">
+        <button id="next-btn" class="menu-btn" style="margin-top:20px">ДАЛЕЕ →</button>
+    </div>
+
     <canvas id="game"></canvas>
-    <div id="debug-console"></div>
 
 <script>
-// === ОТЛАДКА ===
-const DEBUG = true;
-function log(msg) {
-    if (!DEBUG) return;
-    console.log('[KSSHASHKA]', msg);
-    const consoleEl = document.getElementById('debug-console');
-    if (consoleEl) {
-        consoleEl.innerHTML += `<div>${new Date().toLocaleTimeString()} - ${msg}</div>`;
-        consoleEl.scrollTop = consoleEl.scrollHeight;
-    }
-}
-
-// Supabase
+// === Supabase ===
 const SUPABASE_URL = 'https://rfjruwbeiaahegzmowcc.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmanJ1d2JlaWFhaGVnem1vd2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDMyMjgsImV4cCI6MjA4OTUxOTIyOH0.59jjm9JpMy3m8oZXTfomS4PuTYjDgTfZiSfhCNksPt8';const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-log('Supabase client created');
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmanJ1d2JlaWFhaGVnem1vd2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDMyMjgsImV4cCI6MjA4OTUxOTIyOH0.59jjm9JpMy3m8oZXTfomS4PuTYjDgTfZiSfhCNksPt8';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Telegram
+// === Telegram ===
 const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 const playerName = tg.initDataUnsafe?.user?.username || tg.initDataUnsafe?.user?.first_name || "Player";
 document.getElementById('player-name').innerText = playerName;
-log('Player name: ' + playerName);
 
-// Settings
-let settings = { haptic: true };
+// === Settings ===let settings = { haptic: true };
 function loadSettings() {
     try {
         const s = localStorage.getItem('ksshashka_settings');
         if (s) settings = JSON.parse(s);
-    } catch(e) { log('Settings load error: ' + e.message); }
+    } catch(e) {}
 }
 function saveSettings() { 
     try { localStorage.setItem('ksshashka_settings', JSON.stringify(settings)); } catch(e) {}
 }
 loadSettings();
 
-// Game vars
+// === Game vars ===
 let pillsDb = 0, boostsDb = 0, bestScore = 0;
-let gameState = 'MENU', gameMode = 'FREE', score = 0;
+let gameState = 'MENU', gameMode = 'STORY', score = 0;
 let gameSpeed = 7.2, houseX = -5000;
 let isBoostActive = false, boostFrames = 0, isPaused = false;
 
-// Скины
+// === Скины ===
 let selectedSkin = localStorage.getItem('selectedSkin') || 'default';
 
 const skins = {
-    'default': { emoji: '👤', name: 'Дефолт', desc: 'Классическая Ксюша' },
-    'sport': { emoji: '🏃', name: 'Спорт', desc: 'Треки и кроссы' }
+    'default': { emoji: '👤', name: 'Ксюша', desc: 'Классический образ', prefix: 'default' },
+    'street': { emoji: '🧥', name: 'Стрит', desc: 'Уличный стиль', prefix: 'street' }
 };
 
-// Haptic
+// === Haptic ===
 function haptic(type) {
     if (!settings.haptic) return;
     try {
@@ -291,23 +279,32 @@ function haptic(type) {
     } catch(e) {}
 }
 
-// Управление экранами
-function showSkins() {    document.getElementById('main-menu').classList.remove('active');
-    document.getElementById('skins-menu').classList.add('active');
-    updateSkinsDisplay();
-    log('Shop opened');
+// === Управление экранами ===
+function showModeSelect() {
+    document.getElementById('main-menu').classList.remove('active');
+    document.getElementById('mode-select').classList.add('active');
+}
+
+function hideModeSelect() {
+    document.getElementById('mode-select').classList.remove('active');
+    document.getElementById('main-menu').classList.add('active');
+}
+
+function showSkins() {
+    document.getElementById('main-menu').classList.remove('active');
+    document.getElementById('skins-menu').classList.add('active');    updateSkinsDisplay();
 }
 
 function hideSkins() {
     document.getElementById('skins-menu').classList.remove('active');
     document.getElementById('main-menu').classList.add('active');
-    log('Shop closed');
 }
 
 function returnToMainMenu() {
     gameState = 'MENU';
     document.getElementById('death-screen').classList.remove('active');
     document.getElementById('pause-screen').classList.remove('active');
+    document.getElementById('mode-select').classList.remove('active');
     document.getElementById('skins-menu').classList.remove('active');
     document.getElementById('main-menu').classList.add('active');
     document.getElementById('ui').style.display = 'none';
@@ -316,10 +313,9 @@ function returnToMainMenu() {
     try { tg.BackButton.hide(); } catch(e) {}
     loadLeaderboard();
     fetchUserData();
-    log('Returned to main menu');
 }
 
-// Выбор скинов
+// === Выбор скинов ===
 function updateSkinsDisplay() {
     const skinsEl = document.getElementById('skins-list');
     skinsEl.innerHTML = '';
@@ -340,59 +336,61 @@ function updateSkinsDisplay() {
         `;
         skinsEl.appendChild(card);
     });
-    log('Skins display updated');
 }
+
 function selectSkin(skinId) {
     selectedSkin = skinId;
     localStorage.setItem('selectedSkin', skinId);
-    document.getElementById('player-avatar').innerText = skins[skinId].emoji;
-    loadSkinSprites(skinId);
+    document.getElementById('player-avatar').innerText = skins[skinId].emoji;    loadSkinSprites(skinId);
     haptic('success');
     updateSkinsDisplay();
     quickSave();
-    log('Skin selected: ' + skinId);
 }
 
-// Загрузка спрайтов для скина
-function loadSkinSprites(skinName) {
-    log('Loading sprites for: ' + skinName);
+// === Загрузка спрайтов для скина (с фоллбэком) ===
+function loadSkinSprites(skinId) {
+    const skin = skins[skinId];
+    if (!skin) return;
     
-    imgs.run[0] = new Image();
-    imgs.run[1] = new Image();
-    imgs.run[2] = new Image();
+    const prefix = skin.prefix || skinId;
+    
+    // Загружаем спрайты бега с фоллбэком на default
+    for (let i = 1; i <= 3; i++) {
+        imgs.run[i-1] = new Image();
+        imgs.run[i-1].src = `${prefix}_run_${i}.png`;
+        imgs.run[i-1].onerror = () => {
+            // Если не нашли — пробуем дефолт
+            imgs.run[i-1].src = `default_run_${i}.png`;
+        };
+    }
+    
+    // Загружаем спрайт прыжка
     imgs.jump = new Image();
-    
-    imgs.run[0].src = `${skinName}_run_1.png`;
-    imgs.run[1].src = `${skinName}_run_2.png`;
-    imgs.run[2].src = `${skinName}_run_3.png`;
-    imgs.jump.src = `${skinName}_jump.png`;
-    
-    // Отладка загрузки
-    imgs.run[0].onload = () => log('Loaded: ' + skinName + '_run_1.png');
-    imgs.run[0].onerror = () => log('ERROR: ' + skinName + '_run_1.png not found');
-    imgs.jump.onload = () => log('Loaded: ' + skinName + '_jump.png');
-    imgs.jump.onerror = () => log('ERROR: ' + skinName + '_jump.png not found');
+    imgs.jump.src = `${prefix}_jump.png`;
+    imgs.jump.onerror = () => {
+        imgs.jump.src = 'default_jump.png';
+    };
 }
 
-// Supabase функции
+// === Supabase функции ===
 async function fetchUserData() {
     document.getElementById('menu-save-status').innerText = '⏳ Загрузка...';
-    log('Fetching user data...');
     
     try {
-        const { data, error } = await _supabase.from('records').select('*').eq('username', playerName).single();
+        const { data, error } = await _supabase
+            .from('records')
+            .select('*')
+            .eq('username', playerName)
+            .single();
         
-        if (error) {
-            log('Supabase error: ' + error.message);
-            throw error;
-        }
+        if (error) throw error;
         
         if (data) {
             pillsDb = data.pills || 0;
             boostsDb = data.speed || 0;
-            bestScore = data.score || 0;            
-            if (data.selectedSkin) {
-                selectedSkin = data.selectedSkin;
+            bestScore = data.score || 0;
+            
+            if (data.selectedSkin && skins[data.selectedSkin]) {                selectedSkin = data.selectedSkin;
                 localStorage.setItem('selectedSkin', data.selectedSkin);
             }
             
@@ -400,14 +398,15 @@ async function fetchUserData() {
             document.getElementById('boost-count').innerText = boostsDb;
             document.getElementById('best-score').innerText = bestScore;
             document.getElementById('menu-save-status').innerText = '✓ Синхронизировано';
-            log('User data loaded successfully');
+        } else {
+            document.getElementById('menu-save-status').innerText = '✓ Готов к игре';
         }
         
         document.getElementById('player-avatar').innerText = skins[selectedSkin]?.emoji || '👤';
         loadSkinSprites(selectedSkin);
         
     } catch(e) {
-        log('DB error: ' + e.message);
+        console.log('DB error:', e.message);
         document.getElementById('menu-save-status').innerText = '⚠ Офлайн режим';
         document.getElementById('player-avatar').innerText = skins[selectedSkin]?.emoji || '👤';
         loadSkinSprites(selectedSkin);
@@ -416,7 +415,11 @@ async function fetchUserData() {
 
 async function quickSave() {
     try {
-        const { data } = await _supabase.from('records').select('*').eq('username', playerName).single();
+        const { data } = await _supabase
+            .from('records')
+            .select('*')
+            .eq('username', playerName)
+            .single();
         
         if (data) {
             await _supabase.from('records').update({ 
@@ -433,15 +436,18 @@ async function quickSave() {
                 selectedSkin: selectedSkin
             }]);
         }
-        log('Data saved');
     } catch(e) {
-        log('Save failed: ' + e.message);
+        console.log('Save failed:', e.message);
     }
 }
-
-async function saveProgress(s) {    if (s > bestScore) bestScore = s;
+async function saveProgress(s) {
+    if (s > bestScore) bestScore = s;
     try {
-        const { data } = await _supabase.from('records').select('*').eq('username', playerName).single();
+        const { data } = await _supabase
+            .from('records')
+            .select('*')
+            .eq('username', playerName)
+            .single();
         
         if (data) {
             await _supabase.from('records').update({ 
@@ -460,19 +466,21 @@ async function saveProgress(s) {    if (s > bestScore) bestScore = s;
             }]);
         }
         loadLeaderboard();
-        log('Progress saved: ' + s);
     } catch(e) {
-        log('Progress save failed: ' + e.message);
+        console.log('Progress save failed:', e.message);
     }
 }
 
 async function loadLeaderboard() {
     const list = document.getElementById('leader-list');
     list.innerHTML = 'Загрузка...';
-    log('Loading leaderboard...');
     
     try {
-        const { data, error } = await _supabase.from('records').select('*').order('score', { ascending: false }).limit(10);
+        const { data, error } = await _supabase
+            .from('records')
+            .select('*')
+            .order('score', { ascending: false })
+            .limit(10);
         
         if (error) throw error;
         
@@ -480,90 +488,105 @@ async function loadLeaderboard() {
             list.innerHTML = data.map((p, i) => 
                 `<div class="leader-item"${p.username===playerName?' style="color:#ff0"':''}>
                     <span>${i+1}. ${p.username.substring(0,12)}</span>
-                    <span>${p.score} 💊${p.pills||0}</span>
-                </div>`
+                    <span>${p.score} 💊</span>                </div>`
             ).join('');
-            log('Leaderboard loaded: ' + data.length + ' players');
         } else {
-            list.innerHTML = 'Пока пусто...';
-            log('Leaderboard empty');
+            list.innerHTML = 'Пока пусто... Заходи в игру!';
         }
-    } catch(e) {        log('Leaderboard error: ' + e.message);
+    } catch(e) {
+        console.log('Leaderboard error:', e);
         list.innerHTML = 'Не удалось загрузить';
     }
 }
 
-// Canvas
+// === Canvas ===
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
+
+// Сначала groundY, потом player!
+let groundY;
 function resize() { 
     canvas.width = window.innerWidth; 
     canvas.height = window.innerHeight; 
-    log('Canvas resized: ' + canvas.width + 'x' + canvas.height);
+    groundY = canvas.height - (canvas.height / 3.5);
 }
 resize();
 window.addEventListener('resize', resize);
-const groundY = canvas.height - (canvas.height / 3.5);
 
 // Images
 const imgs = {
     bg: new Image(), beer: new Image(), pills: new Image(), jump: new Image(),
     run: [new Image(), new Image(), new Image()], house: new Image()
 };
+imgs.bg.src = 'bg.png'; 
+imgs.beer.src = 'beer.png'; 
+imgs.pills.src = 'pills.png';
+imgs.house.src = 'house.png';
 
-// Загрузка изображений с отладкой
-function loadImage(name, src) {
-    imgs[name].src = src;
-    imgs[name].onload = () => log('Image loaded: ' + name);
-    imgs[name].onerror = () => log('IMAGE ERROR: ' + name + ' (' + src + ')');
+// Загружаем дефолтные спрайты сразу (гарантия, что игра не сломается)
+for (let i = 1; i <= 3; i++) {
+    imgs.run[i-1].src = `default_run_${i}.png`;
 }
+imgs.jump.src = 'default_jump.png';
 
-loadImage('bg', 'bg.png');
-loadImage('beer', 'beer.png');
-loadImage('pills', 'pills.png');
-loadImage('house', 'house.png');
+// === Cutscenes ===
+const slides = ['end_1.jpg','end_2.jpg','end_3.jpg','end_4.jpg','end_5.jpg'];
+const phrases = ["АНДЕГРАУНД ПАЛЮБОМУ","ЧИЛАНЗАРСКИЕ ДВОРИКИ ЖДУТ","ТЫ ЖЕ ПИТЬ БРОСИЛА","КИБРАЙ ОКАЗАЛСЯ СИЛЬНЕЕ","ЭТО ТЕБЕ НЕ ВПИСКА"];
+let currentSlide = 0;
 
-// Player
-const player = { x: 50, y: groundY - 110, w: 90, h: 110, dy: 0, jf: 17.5, g: 0.75, grounded: false, frame: 0, tick: 0 };
+// === Player (создаём ПОСЛЕ resize!) ===
+let player = { 
+    x: 50, 
+    y: groundY - 110,     w: 90, 
+    h: 110, 
+    dy: 0, 
+    jf: 17.5, 
+    g: 0.75, 
+    grounded: false, 
+    frame: 0, 
+    tick: 0 
+};
 let obstacles = [], collectables = [], particles = [], screenShake = 0;
 
-// Buy boost
+// === Buy boost ===
 function buyBoost() {
     const btn = document.getElementById('buy-btn');
     if (pillsDb >= 10) {
-        pillsDb -= 10; boostsDb += 1;
+        pillsDb -= 10; 
+        boostsDb += 1;
         document.getElementById('pills-count').innerText = pillsDb;
         document.getElementById('boost-count').innerText = boostsDb;
-        haptic('success'); quickSave();
+        haptic('success'); 
+        quickSave();
         btn.innerText = 'КУПЛЕНО!';
         setTimeout(() => btn.innerText = 'КУПИТЬ (10💊)', 1000);
-        log('Boost purchased');    } else {
+    } else {
         haptic('error');
         btn.innerText = 'МАЛО 💊!';
         btn.style.background = '#f44';
         setTimeout(() => { btn.innerText = 'КУПИТЬ (10💊)'; btn.style.background = '#0ff'; }, 1000);
-        log('Not enough pills for boost');
     }
 }
 
-// Activate boost
+// === Activate boost ===
 function activateBoost() {
     if (boostsDb > 0 && !isBoostActive && gameState === 'PLAYING' && !isPaused) {
-        boostsDb--; isBoostActive = true; boostFrames = 300;
+        boostsDb--; 
+        isBoostActive = true; 
+        boostFrames = 300;
         document.getElementById('boost-count').innerText = boostsDb;
-        haptic('heavy'); quickSave();
-        log('Boost activated');
+        haptic('heavy'); 
+        quickSave();
     }
 }
 
-// Start game
+// === Start game ===
 function startGame(mode) {
     gameMode = mode; 
     gameState = 'PLAYING'; 
     isPaused = false; 
     score = 0; 
-    houseX = -5000;
-    obstacles = []; 
+    houseX = -5000;    obstacles = []; 
     collectables = []; 
     particles = []; 
     isBoostActive = false; 
@@ -571,32 +594,36 @@ function startGame(mode) {
     player.y = groundY - player.h; 
     player.dy = 0; 
     player.grounded = true;
+    player.frame = 0;
+    player.tick = 0;
     
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('ui').style.display = 'flex';    
     document.getElementById('pause-btn').style.display = 'flex';
     document.getElementById('score').innerText = '0';
     
-    try { tg.BackButton.show(); tg.BackButton.onClick(() => togglePause()); } catch(e) {}
+    try { 
+        tg.BackButton.show(); 
+        tg.BackButton.onClick(() => togglePause()); 
+    } catch(e) {}
     haptic('light');
-    log('Game started: ' + mode);
 }
 
 function restartGame() {
     startGame(gameMode);
 }
 
-function togglePause() {    if (gameState !== 'PLAYING') return;
+function togglePause() {
+    if (gameState !== 'PLAYING') return;
     isPaused = !isPaused;
     if (isPaused) {
         document.getElementById('pause-screen').classList.add('active');
     } else {
         document.getElementById('pause-screen').classList.remove('active');
     }
-    log('Pause: ' + isPaused);
 }
 
-// Update
+// === Update ===
 function update() {
     if (gameState !== 'PLAYING' || isPaused) return;
     
@@ -604,17 +631,38 @@ function update() {
     
     if (isBoostActive) {
         boostFrames--;
-        if (boostFrames <= 0) { isBoostActive = false; canvas.style.filter = 'none'; }
-        else canvas.style.filter = `hue-rotate(${boostFrames*8}deg) saturate(2)`;
-    }
+        if (boostFrames <= 0) { 
+            isBoostActive = false; 
+            canvas.style.filter = 'none'; 
+        }
+        else canvas.style.filter = `hue-rotate(${boostFrames*8}deg) saturate(2)`;    }
     
     player.dy += player.g;
     player.y += player.dy;
-    if (player.y + player.h > groundY) { player.y = groundY - player.h; player.dy = 0; player.grounded = true; }
+    if (player.y + player.h > groundY) { 
+        player.y = groundY - player.h; 
+        player.dy = 0; 
+        player.grounded = true; 
+    }
     else player.grounded = false;
     
-    if (player.grounded) { player.tick++; if (player.tick % 7 === 0) player.frame = (player.frame + 1) % 3; }
+    if (player.grounded) { 
+        player.tick++; 
+        if (player.tick % 7 === 0) player.frame = (player.frame + 1) % 3; 
+    }
     
+    // Сюжет: дом появляется после 28 очков
+    if (gameMode === 'STORY' && score >= 28 && houseX < -1000) houseX = canvas.width;
+    if (houseX > -1000) {
+        houseX -= speed;        
+        if (player.x + player.w > houseX + 100) {
+            gameState = 'CUT';
+            canvas.style.filter = 'brightness(0)';
+            setTimeout(startCutscene, 2000);
+        }
+    }
+    
+    // Препятствия
     for (let i = obstacles.length - 1; i >= 0; i--) {
         obstacles[i].x -= speed;
         const o = obstacles[i];
@@ -626,7 +674,7 @@ function update() {
             haptic('heavy');
             if (gameMode === 'FREE') saveProgress(score);
             
-            document.getElementById('death-msg').innerText = 'ПОТРАЧЕНО';
+            document.getElementById('death-msg').innerText = phrases[Math.floor(Math.random() * phrases.length)];
             document.getElementById('final-score').innerText = score;
             canvas.style.filter = 'none';
             document.getElementById('ui').style.display = 'none';
@@ -634,11 +682,16 @@ function update() {
             document.getElementById('death-screen').classList.add('active');
             
             try { tg.BackButton.hide(); } catch(e) {}
-            log('Player died, score: ' + score);
-        }        
-        if (o.x + o.w < 0) { obstacles.splice(i, 1); score++; document.getElementById('score').innerText = score; }
+            return;
+        }
+                if (o.x + o.w < 0) { 
+            obstacles.splice(i, 1); 
+            score++; 
+            document.getElementById('score').innerText = score; 
+        }
     }
     
+    // Таблетки
     for (let i = collectables.length - 1; i >= 0; i--) {
         collectables[i].x -= speed;
         const c = collectables[i];
@@ -649,12 +702,14 @@ function update() {
             createParticles(c.x + c.w/2, c.y + c.h/2, 8, '#ff0');
             haptic('light');
             collectables.splice(i, 1);
+            quickSave();
         } else if (c.x + c.w < 0) {
             collectables.splice(i, 1);
         }
     }
     
-    if (Math.random() < 0.04 && 
+    // Спавн препятствий
+    if (Math.random() < 0.04 && (gameMode === 'FREE' || score < 28) && 
         (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 300)) {
         obstacles.push({ x: canvas.width, y: groundY - 75, w: 45, h: 75 });
     }
@@ -662,6 +717,7 @@ function update() {
         collectables.push({ x: canvas.width, y: groundY - 140, w: 40, h: 40 });
     }
     
+    // Частицы
     for (let i = particles.length - 1; i >= 0; i--) {
         particles[i].x += particles[i].vx;
         particles[i].y += particles[i].vy;
@@ -669,6 +725,7 @@ function update() {
         if (particles[i].life <= 0) particles.splice(i, 1);
     }
     
+    // Screen shake
     if (screenShake > 0) {
         screenShake--;
         canvas.style.transform = `translate(${(Math.random()-0.5)*screenShake}px, ${(Math.random()-0.5)*screenShake}px)`;
@@ -676,19 +733,24 @@ function update() {
         canvas.style.transform = 'none';
     }
 }
-
-// Draw
+// === Draw ===
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     // Фон
-    ctx.fillStyle = '#111';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-        if (imgs.bg.complete && imgs.bg.naturalWidth > 0) {
+    if (imgs.bg.complete && imgs.bg.naturalWidth > 0) {
         ctx.drawImage(imgs.bg, 0, 0, canvas.width, canvas.height);
+    } else {
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     
-    if (gameState === 'PLAYING' || gameState === 'DEAD') {
+    if (gameState === 'PLAYING' || gameState === 'CUT') {
+        // Дом (сюжет)
+        if (houseX > -1000 && imgs.house.complete && imgs.house.naturalWidth > 0) {
+            ctx.drawImage(imgs.house, houseX, groundY - 320, 320, 320);
+        }
+        
         // Препятствия
         obstacles.forEach(o => {
             if (imgs.beer.complete && imgs.beer.naturalWidth > 0) {
@@ -711,17 +773,16 @@ function draw() {
             }
         });
         
-        // Игрок
+        // Игрок с выбранным скином
         const cur = player.grounded ? imgs.run[player.frame] : imgs.jump;
         if (cur?.complete && cur.naturalWidth > 0) {
             ctx.drawImage(cur, player.x, player.y, player.w, player.h);
         } else {
-            // Fallback - цветной прямоугольник
+            // Fallback: цветной прямоугольник
             ctx.fillStyle = isBoostActive ? '#0ff' : '#f0f';
             ctx.fillRect(player.x, player.y, player.w, player.h);
         }
-        
-        // Частицы
+                // Частицы
         particles.forEach(p => {
             ctx.globalAlpha = p.life / 30;
             ctx.fillStyle = p.color;
@@ -734,6 +795,7 @@ function draw() {
     
     requestAnimationFrame(draw);
 }
+
 function createParticles(x, y, count, color) {
     for (let i = 0; i < count; i++) {
         particles.push({
@@ -747,12 +809,36 @@ function createParticles(x, y, count, color) {
     }
 }
 
+// === Cutscene ===
+function startCutscene() {
+    document.getElementById('cutscene').style.display = 'flex';
+    currentSlide = 0;
+    showSlide();
+}
+
+function showSlide() {
+    const img = document.getElementById('cutscene-img');
+    const btn = document.getElementById('next-btn');
+    
+    if (currentSlide < slides.length) {
+        img.src = slides[currentSlide];
+        btn.style.display = 'block';
+    } else {
+        btn.style.display = 'none';
+        setTimeout(() => location.reload(), 2000);
+    }
+}
+
+document.getElementById('next-btn').onclick = () => { 
+    currentSlide++; 
+    showSlide(); };
+
+// === Управление ===
 function jump(e) {
     if (gameState === 'PLAYING' && !isPaused && player.grounded && e.target.tagName !== 'BUTTON') {
         player.dy = -player.jf;
         player.grounded = false;
         haptic('medium');
-        log('Jump!');
     }
 }
 window.addEventListener('touchstart', jump);
@@ -762,13 +848,11 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'Escape') togglePause();
 });
 
-// Init
-log('=== GAME INIT ===');
+// === Init ===
 fetchUserData();
 loadLeaderboard();
 setInterval(update, 1000/60);
 draw();
-log('Game loop started');
 </script>
 </body>
 </html>
